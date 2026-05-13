@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: headmap_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: headmap
+      POSTGRES_USER: headmap
+      POSTGRES_PASSWORD: headmap_secret
+    volumes:
+      - headmap_pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U headmap"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: headmap_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://headmap:headmap_secret@db:5432/headmap
+      JWT_SECRET: change_me_in_production_please
+      PORT: 3000
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build: ./frontend
+    container_name: headmap_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  headmap_pgdata:

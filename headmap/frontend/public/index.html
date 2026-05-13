@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>headmap SOPs Builder</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+:root{--burg:#55253b;--burg2:#3c1626;--blue:#1281ff;--blue2:#2154ed;--blue3:#4fa4ff;--red:#e84040;--r:6px;--bg:#fafafa;--bg2:#f2f2f2;--bg3:#e8e8e8;--surf:#fff;--brd:#e4e4e4;--brd2:#d0d0d0;--tx:#1a1a1a;--tx2:#444;--tx3:#888;--ac:#1281ff;--ac2:#2154ed}
+.th-beige{--bg:#f7eacf;--bg2:#efe0c3;--bg3:#e6d5b8;--surf:#fff8e6;--brd:#decbae;--brd2:#d5bfa0;--tx:#55253b;--tx2:#763454;--tx3:#924168}
+.th-burg{--bg:#55253b;--bg2:#491e31;--bg3:#3c1626;--surf:#612a44;--brd:#763454;--brd2:#924168;--tx:#f7eacf;--tx2:#efe0c3;--tx3:#decbae;--ac:#4fa4ff;--ac2:#1281ff}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;display:flex;flex-direction:column;font-size:13px;transition:background .25s,color .2s}
+
+/* ── LOGIN SCREEN ── */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1e1e2e 0%,#3c1626 100%);display:flex;align-items:center;justify-content:center;z-index:9999}
+#login-screen.hidden{display:none}
+.login-box{background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center}
+.login-logo-wm{font-size:20px;font-weight:700;color:#55253b;letter-spacing:-.3px}
+.login-logo-wm em{color:#1281ff;font-style:normal}
+.login-title{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:4px;text-align:center}
+.login-sub{font-size:11px;color:#888;text-align:center;margin-bottom:24px}
+.login-field{margin-bottom:14px}
+.login-field label{font-size:10px;font-weight:600;color:#444;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:4px}
+.login-field input{width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-family:'Poppins',sans-serif;font-size:13px;color:#1a1a1a;outline:none;transition:border-color .15s}
+.login-field input:focus{border-color:#1281ff}
+.login-btn{width:100%;background:#1281ff;color:#fff;border:none;border-radius:8px;padding:11px;font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;margin-top:4px}
+.login-btn:hover{background:#2154ed}
+.login-err{background:#fff0f0;border:1px solid #fcc;border-radius:6px;color:#c00;font-size:11px;padding:8px 10px;margin-top:10px;display:none}
+.login-err.show{display:block}
+
+/* ── APP CHROME ── */
+header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;background:#55253b;position:sticky;top:0;z-index:300;flex-shrink:0;box-shadow:0 2px 12px rgba(60,22,38,.25)}
+.th-burg header{background:#3c1626}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-wm{font-size:15px;font-weight:700;color:#f7eacf;letter-spacing:-.3px}
+.logo-wm em{color:#4fa4ff;font-style:normal}
+.logo-sub{font-size:8px;color:rgba(247,234,207,.45);letter-spacing:1.4px;text-transform:uppercase;display:block;margin-top:2px}
+.hdr-r{display:flex;align-items:center;gap:7px}
+.btn{font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;padding:6px 12px;border-radius:var(--r);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.btn-g{background:rgba(247,234,207,.1);color:#f7eacf;border:1px solid rgba(247,234,207,.2)}.btn-g:hover{background:rgba(247,234,207,.2)}
+.btn-p{background:#1281ff;color:#fff}.btn-p:hover{background:#2154ed}
+.btn-sh{background:rgba(247,234,207,.12);color:#f7eacf;border:1px solid rgba(247,234,207,.25)}.btn-sh:hover{background:rgba(247,234,207,.22)}
+.btn-sm{font-size:10px;padding:5px 9px}
+.btn-red{background:#e84040;color:#fff}.btn-red:hover{background:#c83030}
+
+/* ── USER PILL ── */
+.user-pill{display:flex;align-items:center;gap:7px;background:rgba(247,234,207,.12);border:1px solid rgba(247,234,207,.2);border-radius:20px;padding:4px 10px 4px 6px;cursor:pointer;transition:background .15s}
+.user-pill:hover{background:rgba(247,234,207,.22)}
+.user-av{width:22px;height:22px;border-radius:50%;background:#1281ff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-size:10px;font-weight:600;color:#f7eacf}
+.user-role{font-size:9px;color:rgba(247,234,207,.5)}
+
+/* ── ADMIN PANEL ── */
+.admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:flex;align-items:flex-start;justify-content:flex-end;padding:60px 16px 0}
+.admin-overlay.hidden{display:none}
+.admin-panel{background:var(--surf);border:1px solid var(--brd);border-radius:12px;width:340px;max-height:80vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.28)}
+.ap-hdr{padding:14px 17px 11px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+.ap-hdr h3{font-size:13px;font-weight:700;color:var(--tx)}
+.ap-body{padding:14px 17px}
+.user-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--brd)}
+.user-row:last-child{border-bottom:none}
+.ur-av{width:28px;height:28px;border-radius:50%;background:#1281ff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.ur-info{flex:1;min-width:0}
+.ur-name{font-size:11.5px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ur-meta{font-size:9.5px;color:var(--tx3)}
+.ur-acts{display:flex;gap:4px}
+.ur-act{font-family:'Poppins',sans-serif;font-size:9px;font-weight:600;background:var(--bg2);color:var(--tx3);border:1px solid var(--brd2);border-radius:4px;padding:3px 7px;cursor:pointer;transition:all .15s}
+.ur-act:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.ap-add{margin-top:14px;border-top:1px solid var(--brd);padding-top:14px}
+.ap-add h4{font-size:11px;font-weight:700;color:var(--tx);margin-bottom:10px}
+
+.tab-bar{display:flex;align-items:stretch;background:#1e1e2e;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;padding:0 20px;gap:2px}
+.th-beige .tab-bar,.th-burg .tab-bar{background:#3c1626;border-bottom-color:rgba(247,234,207,.12)}
+.tab-btn{font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;color:rgba(255,255,255,.4);background:transparent;border:none;cursor:pointer;padding:9px 14px;letter-spacing:.5px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:6px}
+.tab-btn:hover{color:rgba(255,255,255,.8)}.tab-btn.active{color:#fff;border-bottom-color:#4fa4ff}
+.tbadge{background:#1281ff;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;line-height:1.4}
+.app{display:flex;flex:1;overflow:hidden;min-height:0}
+.tp{display:none;flex:1;overflow:hidden;min-height:0}.tp.active{display:flex}
+.view-toggle{display:flex;border:1px solid var(--brd2);border-radius:var(--r);overflow:hidden}
+.vtb{font-family:'Poppins',sans-serif;background:var(--bg2);color:var(--tx3);border:none;cursor:pointer;padding:6px 10px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.vtb.active{background:#2d2d3f;color:#fff}.th-beige .vtb.active,.th-burg .vtb.active{background:#55253b;color:#f7eacf}
+.vtb:hover:not(.active){background:var(--bg3);color:var(--tx)}
+.sop-list-page{flex:1;overflow-y:auto;padding:22px;background:var(--bg);transition:background .25s}
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.page-hdr h2{font-size:17px;font-weight:700;color:var(--tx);letter-spacing:-.3px}
+.page-hdr p{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.8px;margin-top:3px}
+.filter-bar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:14px;padding:8px 12px;background:var(--bg2);border:1px solid var(--brd);border-radius:8px;transition:background .25s,border-color .25s}
+.filter-lbl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--tx3);flex-shrink:0}
+.filt-all{font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:600;padding:3px 10px;border-radius:12px;border:1.5px solid var(--brd2);background:var(--surf);color:var(--tx2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.filt-all.active{background:#2d2d3f;color:#fff;border-color:#2d2d3f}
+.th-beige .filt-all.active,.th-burg .filt-all.active{background:#55253b;color:#f7eacf;border-color:#55253b}
+.div-pill{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:600;padding:3px 9px;border-radius:12px;cursor:pointer;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;opacity:.55}
+.div-pill.active,.div-pill:hover{opacity:1}
+.lbl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}
+.sop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:13px}
+.sop-card{background:var(--surf);border:1px solid var(--brd);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s,background .25s;position:relative}
+.sop-card:hover{border-color:var(--ac);box-shadow:0 4px 18px rgba(18,129,255,.1)}
+.sop-card-top{padding:14px 14px 8px}
+.sop-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#1281ff,#2154ed);display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:9px}
+.sop-title{font-size:12.5px;font-weight:700;color:var(--tx);line-height:1.3;margin-bottom:2px}
+.sop-ver{font-size:9.5px;color:var(--tx3)}
+.sop-divs{display:flex;flex-wrap:wrap;gap:3px;padding:0 14px 7px}
+.sop-div-badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px}
+.sop-meta{display:flex;align-items:center;gap:5px;padding:8px 14px;border-top:1px solid var(--brd);flex-wrap:wrap}
+.sop-mpill{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;background:var(--bg2);color:var(--tx3);border:1px solid var(--brd2)}
+.sop-acts{position:absolute;top:9px;right:9px;display:flex;gap:3px;opacity:0;transition:opacity .15s}
+.sop-card:hover .sop-acts{opacity:1}
+.sop-act{font-family:'Poppins',sans-serif;font-size:9px;font-weight:600;background:var(--bg2);color:var(--tx3);border:1px solid var(--brd2);border-radius:4px;padding:3px 7px;cursor:pointer;transition:all .15s}
+.sop-act:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.sop-act.edit:hover{background:var(--ac);color:#fff;border-color:var(--ac)}
+.sop-list-wrap{overflow-x:auto}
+.sop-ltbl{width:100%;border-collapse:collapse}
+.sop-ltbl thead th{background:#2d2d3f;color:#f0f0f0;padding:9px 14px;font-size:9.5px;font-weight:600;text-align:left;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
+.th-beige .sop-ltbl thead th,.th-burg .sop-ltbl thead th{background:#55253b;color:#f7eacf}
+.sop-ltbl tbody tr{border-bottom:1px solid var(--brd);cursor:pointer;transition:background .1s}
+.sop-ltbl tbody tr:hover{background:var(--bg2)}
+.sop-ltbl td{padding:9px 14px;color:var(--tx);vertical-align:middle;font-size:11.5px}
+.map-btn{font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;padding:5px 10px;border-radius:var(--r);border:1px solid var(--brd2);background:var(--bg2);color:var(--tx2);cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.map-btn:hover,.map-btn.active{background:#1281ff;color:#fff;border-color:#1281ff}
+.sop-ws{flex:1;display:flex;overflow:hidden;min-height:0}
+.ws-sb{width:252px;min-width:252px;background:var(--surf);border-right:1px solid var(--brd);display:flex;flex-direction:column;overflow-y:auto;transition:background .25s,border-color .25s}
+.ws-topbar{padding:9px 13px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:7px;flex-shrink:0}
+.ws-back{font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;background:transparent;color:var(--tx3);border:1px solid var(--brd2);border-radius:5px;padding:4px 8px;cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap}
+.ws-back:hover{color:var(--tx);border-color:var(--brd)}
+.ws-sopname{font-size:11px;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.sb-sec{padding:10px 13px;border-bottom:1px solid var(--brd)}
+.sb-lbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:var(--tx3);margin-bottom:7px}
+.sbi{width:100%;background:var(--bg2);border:1px solid var(--brd2);border-radius:var(--r);color:var(--tx);font-family:'Poppins',sans-serif;font-size:11.5px;padding:6px 9px;outline:none;transition:border-color .15s,background .25s}
+.sbi:focus{border-color:var(--ac)}
+.ri{display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);margin-bottom:4px;transition:background .25s}
+.rdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.rni{flex:1;background:transparent;border:none;color:var(--tx);font-family:'Poppins',sans-serif;font-size:11px;font-weight:500;outline:none;min-width:0}
+.sws{display:flex;gap:3px}
+.sw{width:11px;height:11px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .1s;flex-shrink:0}
+.sw.on{border-color:var(--tx)}
+.del-btn{background:transparent;color:var(--red);border:1px solid transparent;border-radius:4px;font-family:'Poppins',sans-serif;font-size:10px;cursor:pointer;padding:2px 5px;transition:all .15s;flex-shrink:0}
+.del-btn:hover{background:rgba(232,64,64,.1);border-color:rgba(232,64,64,.3)}
+.add-btn{width:100%;background:transparent;border:1px dashed var(--brd2);color:var(--tx3);border-radius:var(--r);font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;cursor:pointer;padding:4px 8px;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .15s}
+.add-btn:hover{background:rgba(18,129,255,.07);color:var(--ac);border-color:var(--ac)}
+.sti{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);margin-bottom:4px;overflow:hidden;transition:background .25s}
+.sth{display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;user-select:none}
+.stnum{font-size:9px;font-weight:700;color:var(--tx3);width:14px;flex-shrink:0}
+.stni{flex:1;background:transparent;border:none;color:var(--tx);font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;outline:none;min-width:0}
+.stb{padding:0 8px 8px;display:none}.stb.open{display:block}
+.rsl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:7px;margin-bottom:3px}
+.trow{display:flex;gap:4px;margin-bottom:3px;align-items:flex-start}
+.tta{flex:1;background:var(--bg);border:1px solid var(--brd2);border-radius:4px;color:var(--tx);font-family:'Poppins',sans-serif;font-size:10px;padding:4px 6px;outline:none;resize:none;min-height:38px;transition:border-color .15s}
+.tta:focus{border-color:var(--ac)}
+.ppr-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.ppr-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;flex-shrink:0;overflow:hidden}
+.ppr-nm{flex:1;font-size:10.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx)}
+.ppr-sub{font-size:9px;color:var(--tx3)}
+.ppr-btn{font-family:'Poppins',sans-serif;font-size:9px;font-weight:700;background:transparent;color:var(--ac);border:1px solid var(--ac);border-radius:4px;padding:2px 6px;cursor:pointer;transition:all .15s;flex-shrink:0}
+.ppr-btn.in{color:#1a6030;border-color:#40a060;background:rgba(40,160,80,.08)}
+.preview{flex:1;overflow:auto;padding:20px 20px 40px;background:var(--bg);transition:background .25s}
+.ptitle{font-size:18px;font-weight:700;color:var(--tx);letter-spacing:-.3px;line-height:1.2}
+.psub{font-size:10px;color:var(--tx3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:13px}
+.slw{overflow-x:auto}
+.slt{border-collapse:collapse;width:100%;min-width:560px}
+.slt th,.slt td{border:1px solid var(--brd2);vertical-align:top;padding:0}
+.slt thead th{background:#2d2d3f;color:#f0f0f0;padding:8px 10px;font-size:10px;font-weight:600;text-align:center;min-width:110px;letter-spacing:.3px}
+.th-beige .slt thead th,.th-burg .slt thead th{background:#55253b;color:#f7eacf}
+.slt thead th:first-child{min-width:66px;width:66px;text-align:left;padding-left:9px;background:#1e2030}
+.th-beige .slt thead th:first-child,.th-burg .slt thead th:first-child{background:#3c1626}
+.th-burg .slt thead th:first-child{background:var(--bg3)}
+.ssn{font-size:8px;color:rgba(255,255,255,.35);display:block;margin-bottom:1px}
+.srl{font-size:10px;font-weight:700;padding:9px 10px;vertical-align:middle;white-space:nowrap;border-right:3px solid;letter-spacing:.3px;text-transform:uppercase}
+.sc{padding:5px;min-height:46px}
+.sk{border-radius:4px;padding:5px 8px;margin-bottom:3px;font-size:10px;line-height:1.45;border:1px solid transparent}
+.sk b{display:block;font-weight:600;font-size:10px;margin-bottom:1px}
+.sk small{opacity:.7;font-size:9px}
+.se{color:var(--tx3);font-size:9.5px;text-align:center;padding:12px 4px;opacity:.4}
+.ai-panel{width:265px;min-width:265px;background:var(--surf);border-left:1px solid var(--brd);display:flex;flex-direction:column;overflow:hidden;transition:width .28s cubic-bezier(.4,0,.2,1),min-width .28s cubic-bezier(.4,0,.2,1),background .25s,border-color .25s}
+.ai-panel.mini{width:36px;min-width:36px}
+.ai-hdr{background:linear-gradient(135deg,#1281ff,#2154ed);padding:11px 13px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.ai-panel.mini .ai-hdr{flex-direction:column;padding:10px 0;height:100%;justify-content:flex-start;gap:0;cursor:pointer}
+.ai-hdr-info{flex:1;min-width:0;overflow:hidden}
+.ai-panel.mini .ai-hdr-info{display:none}
+.ai-hdr-title{font-size:12px;font-weight:700;color:#fff;white-space:nowrap}
+.ai-hdr-sub{font-size:8px;color:rgba(255,255,255,.55);display:block;margin-top:1px}
+.ai-vert{display:none;writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.8px;white-space:nowrap;margin-top:10px}
+.ai-panel.mini .ai-vert{display:block}
+.ai-bot-icon{font-size:17px;line-height:1;flex-shrink:0}
+.ai-panel.mini .ai-bot-icon{display:none}
+.ai-mini-btn{background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:5px;cursor:pointer;padding:4px 7px;font-size:13px;line-height:1;transition:all .15s;flex-shrink:0}
+.ai-mini-btn:hover{background:rgba(255,255,255,.32)}
+.ai-panel.mini .ai-mini-btn{transform:rotate(180deg);margin:8px auto 0;flex-shrink:0}
+.ai-body{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+.ai-panel.mini .ai-body{display:none}
+.ai-key-bar{padding:6px 11px;border-bottom:1px solid var(--brd);background:var(--bg2);display:flex;gap:5px;align-items:center;flex-shrink:0;transition:background .25s,border-color .25s}
+.ai-key-inp{flex:1;background:var(--bg3);border:1px solid var(--brd2);border-radius:5px;color:var(--tx);font-family:'Poppins',sans-serif;font-size:10px;padding:4px 7px;outline:none}
+.ai-key-inp:focus{border-color:var(--ac)}
+.ai-key-eye{font-family:'Poppins',sans-serif;font-size:10px;background:transparent;border:1px solid var(--brd2);border-radius:5px;color:var(--tx3);cursor:pointer;padding:3px 6px}
+.ai-msgs{flex:1;overflow-y:auto;padding:10px 11px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.ai-msg{display:flex;gap:6px;align-items:flex-start}
+.ai-msg.user{flex-direction:row-reverse}
+.ai-bub{max-width:88%;padding:7px 10px;border-radius:10px;font-size:11px;line-height:1.5}
+.ai-msg.assistant .ai-bub{background:var(--bg2);border:1px solid var(--brd);color:var(--tx);border-radius:3px 10px 10px 10px;transition:background .25s}
+.ai-msg.user .ai-bub{background:linear-gradient(135deg,#1281ff,#2154ed);color:#fff;border-radius:10px 3px 10px 10px}
+.ai-av{width:22px;height:22px;border-radius:50%;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.ai-av.bot{background:linear-gradient(135deg,#1281ff,#2154ed);color:#fff}
+.ai-av.usr{background:#55253b;color:#f7eacf;font-size:9px}
+.ai-typing{display:flex;gap:3px;padding:7px 10px;align-items:center}
+.ai-typing span{width:5px;height:5px;border-radius:50%;background:var(--tx3);animation:blink 1.2s infinite}
+.ai-typing span:nth-child(2){animation-delay:.2s}.ai-typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.ai-qw{padding:5px 11px 0;display:flex;flex-wrap:wrap;gap:3px;flex-shrink:0}
+.ai-qb{font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:500;background:var(--bg2);color:var(--tx2);border:1px solid var(--brd2);border-radius:12px;padding:3px 8px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.ai-qb:hover{background:rgba(18,129,255,.08);color:var(--ac);border-color:var(--ac)}
+.ai-ir{padding:7px 11px 9px;display:flex;gap:5px;align-items:flex-end;flex-shrink:0;border-top:1px solid var(--brd);margin-top:5px;transition:border-color .25s}
+.ai-inp{flex:1;background:var(--bg2);border:1px solid var(--brd2);border-radius:6px;color:var(--tx);font-family:'Poppins',sans-serif;font-size:11px;padding:6px 8px;outline:none;resize:none;min-height:30px;max-height:70px;transition:border-color .15s,background .25s;line-height:1.4}
+.ai-inp:focus{border-color:var(--ac)}
+.ai-sb{background:var(--ac);color:#fff;border:none;border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;flex-shrink:0;transition:background .15s}
+.ai-sb:hover{background:var(--ac2)}.ai-sb:disabled{opacity:.4;cursor:not-allowed}
+.team-page{flex:1;overflow-y:auto;padding:22px;background:var(--bg);transition:background .25s}
+.roles-sec{background:var(--surf);border:1px solid var(--brd);border-radius:10px;padding:14px;margin-bottom:16px;transition:background .25s,border-color .25s}
+.rd-page{flex:1;overflow-y:auto;padding:22px;background:var(--bg);transition:background .25s}
+.rd-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:900px){.rd-cols{grid-template-columns:1fr}}
+.rd-card{background:var(--surf);border:1px solid var(--brd);border-radius:10px;padding:15px;transition:background .25s,border-color .25s}
+.rd-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.rd-card-hdr h3{font-size:13px;font-weight:700;color:var(--tx)}
+.rd-card-hdr p{font-size:9px;color:var(--tx3);margin-top:2px}
+.div-chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--brd2);border-radius:20px;padding:4px 10px 4px 6px;margin:3px;transition:background .25s}
+.div-chip-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.div-chip-name{font-size:11px;font-weight:600;color:var(--tx)}
+.dc-edit,.dc-del{background:transparent;border:none;color:var(--tx3);cursor:pointer;font-size:10px;padding:0 0 0 2px;line-height:1;transition:color .15s}
+.dc-edit:hover{color:var(--ac)}.dc-del:hover{color:var(--red)}
+.org-full{background:var(--surf);border:1px solid var(--brd);border-radius:10px;padding:15px;margin-top:18px;transition:background .25s,border-color .25s}
+.org-full h3{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:11px}
+.rs-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.rs-hdr h3{font-size:13px;font-weight:700;color:var(--tx)}
+.role-chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--brd2);border-radius:20px;padding:4px 10px 4px 6px;margin:3px;transition:background .25s}
+.rc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.rc-name{font-size:11px;font-weight:600;color:var(--tx)}
+.rc-lv{font-size:9.5px;color:var(--tx3)}
+.rc-edit,.rc-del{background:transparent;border:none;color:var(--tx3);cursor:pointer;font-size:10px;padding:0 0 0 2px;line-height:1;transition:color .15s}
+.rc-edit:hover{color:var(--ac)}.rc-del:hover{color:var(--red)}
+.org-sec{background:var(--surf);border:1px solid var(--brd);border-radius:10px;padding:14px;margin-bottom:16px;transition:background .25s,border-color .25s}
+.org-sec h3{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:11px}
+.org-svg-wrap{overflow-x:auto}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:11px}
+.pcard{background:var(--surf);border:1px solid var(--brd);border-radius:10px;overflow:hidden;transition:border-color .15s,background .25s}
+.pcard:hover{border-color:var(--ac)}
+.pch{padding:13px 13px 7px;display:flex;align-items:center;gap:10px}
+.pcav{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;overflow:hidden}
+.pcav img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.pcn{font-size:11.5px;font-weight:700;color:var(--tx)}
+.pcp{font-size:9.5px;color:var(--tx3);margin-top:1px}
+.pc-role-badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;background:rgba(18,129,255,.08);color:#1281ff;border:1px solid rgba(18,129,255,.18);margin-top:2px}
+.pc-sops{padding:0 13px 7px}
+.pc-sops-lbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:3px}
+.pc-sop-pill{display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:1px 7px;border-radius:10px;border:1px solid var(--brd2);color:var(--tx2);background:var(--bg2);margin:1px;white-space:nowrap}
+.pcf{padding:8px 13px;border-top:1px solid var(--brd);display:flex;gap:5px;align-items:center}
+.pcuse{flex:1;font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;background:var(--bg2);color:var(--tx2);border:1px solid var(--brd2);border-radius:5px;padding:4px 7px;cursor:pointer;transition:all .15s}
+.pcuse:hover{background:rgba(18,129,255,.1);color:var(--ac);border-color:var(--ac)}
+.pce{font-family:'Poppins',sans-serif;font-size:10px;background:transparent;color:var(--tx3);border:1px solid var(--brd2);border-radius:5px;padding:4px 7px;cursor:pointer;transition:all .15s}
+.pce:hover{color:var(--tx);border-color:var(--brd)}
+.list-wrap{overflow-x:auto}
+.ltbl{width:100%;border-collapse:collapse;font-size:11px}
+.ltbl thead th{background:#2d2d3f;color:#f0f0f0;padding:8px 12px;font-size:9px;font-weight:600;text-align:left;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;position:sticky;top:0}
+.th-beige .ltbl thead th,.th-burg .ltbl thead th{background:#55253b;color:#f7eacf}
+.ltbl tbody tr{border-bottom:1px solid var(--brd);transition:background .1s}
+.ltbl tbody tr:hover{background:var(--bg2)}
+.ltbl td{padding:7px 12px;color:var(--tx);vertical-align:middle}
+.td-av{display:flex;align-items:center;gap:7px}
+.av-sm{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;overflow:hidden}
+.av-sm img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.td-name{font-weight:600;font-size:11.5px}.td-pos{font-size:9px;color:var(--tx3)}
+.td-mono{font-family:monospace;font-size:10.5px;color:var(--tx2)}
+.td-acts{text-align:right;white-space:nowrap}
+.td-acts button{font-family:'Poppins',sans-serif;font-size:9.5px;background:transparent;color:var(--tx3);border:1px solid var(--brd2);border-radius:4px;padding:2px 6px;cursor:pointer;margin-left:3px;transition:all .15s}
+.td-acts button:hover{color:var(--tx);border-color:var(--brd)}
+.mov{position:fixed;inset:0;background:rgba(0,0,0,.48);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px}
+.mov.hidden{display:none}
+.modal{background:var(--surf);border:1px solid var(--brd);border-radius:12px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.28);transition:background .25s,border-color .25s}
+.mhdr{padding:14px 17px 11px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+.mhdr h3{font-size:13px;font-weight:700;color:var(--tx)}
+.mx{background:transparent;border:none;color:var(--tx3);font-size:16px;cursor:pointer;padding:2px 5px;border-radius:4px}
+.mx:hover{color:var(--tx)}
+.mbody{padding:14px 17px;display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow-y:auto}
+.mft{padding:10px 17px;border-top:1px solid var(--brd);display:flex;gap:7px;justify-content:flex-end}
+.fl{font-size:10px;font-weight:500;color:var(--tx2);display:block;margin-bottom:3px}
+.fi{width:100%;background:var(--bg2);border:1px solid var(--brd2);border-radius:var(--r);color:var(--tx);font-family:'Poppins',sans-serif;font-size:11.5px;padding:6px 9px;outline:none;transition:border-color .15s,background .25s}
+.fi:focus{border-color:var(--ac)}
+.av-row{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.av-prev{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;overflow:hidden}
+.av-prev img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.ac-swatches{display:flex;gap:4px;flex-wrap:wrap}
+.ac-sw{width:19px;height:19px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .1s}
+.ac-sw.on{border-color:var(--tx)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chk-row{display:flex;align-items:center;gap:7px;padding:4px 2px;cursor:pointer;border-radius:5px}
+.chk-row input{width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.chk-row span{font-size:11px;font-weight:500;color:var(--tx)}
+.crop-mov{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px}
+.crop-mov.hidden{display:none}
+.crop-box{background:var(--surf);border-radius:14px;width:100%;max-width:380px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.crop-stage{position:relative;width:100%;height:290px;background:#111;overflow:hidden;cursor:grab;user-select:none}
+.crop-stage:active{cursor:grabbing}
+.crop-img-el{position:absolute;transform-origin:0 0;pointer-events:none;display:none}
+.crop-controls{padding:13px 17px;background:var(--surf);border-top:1px solid var(--brd)}
+.crop-zoom-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.crop-zoom-lbl{font-size:10px;color:var(--tx3);flex-shrink:0;min-width:32px}
+.crop-zoom-inp{flex:1;accent-color:#1281ff;cursor:pointer}
+.save-dot{position:fixed;bottom:9px;right:12px;width:8px;height:8px;border-radius:50%;background:rgba(40,160,80,.85);z-index:999;opacity:0;transition:opacity .4s;pointer-events:none}
+.save-dot.show{opacity:1}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(50px);background:#55253b;color:#f7eacf;font-family:'Poppins',sans-serif;font-size:12px;font-weight:500;padding:9px 20px;border-radius:20px;border:1px solid #924168;z-index:999;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.fbar{background:#1e1e2e;border-top:1px solid rgba(255,255,255,.06);padding:6px 20px;display:flex;align-items:center;gap:10px;font-size:10px;color:rgba(255,255,255,.3);flex-shrink:0}
+.th-beige .fbar,.th-burg .fbar{background:#3c1626;color:rgba(247,234,207,.35);border-top-color:rgba(247,234,207,.08)}
+.fbar a{color:#4fa4ff;text-decoration:none}
+.okr-box{background:linear-gradient(135deg,rgba(18,129,255,.07),rgba(33,84,237,.04));border:1px solid rgba(18,129,255,.2);border-radius:8px;padding:9px 11px;margin-bottom:2px}
+.okr-objective{font-size:11px;font-weight:700;color:var(--tx);line-height:1.4;margin-bottom:6px}
+.okr-krs{display:flex;flex-direction:column;gap:4px}
+.okr-kr{display:flex;align-items:flex-start;gap:6px;font-size:10.5px;color:var(--tx2);line-height:1.4}
+.okr-kr-dot{width:6px;height:6px;border-radius:50%;background:#1281ff;flex-shrink:0;margin-top:4px}
+.okr-empty{font-size:10px;color:var(--tx3);font-style:italic;padding:4px 0}
+.okr-kr-inp{width:100%;background:var(--bg);border:1px solid var(--brd2);border-radius:5px;color:var(--tx);font-family:'Poppins',sans-serif;font-size:10.5px;padding:4px 7px;outline:none;transition:border-color .15s;resize:none;min-height:34px;line-height:1.4}
+.okr-kr-inp:focus{border-color:#1281ff}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="28" height="32" viewBox="0 0 26 30" fill="none"><path d="M3 1H17Q23 1 23 9Q23 21 17 29H3Z" stroke="#55253b" stroke-width="2" fill="none"/><line x1="3" y1="1" x2="23" y2="1" stroke="#55253b" stroke-width="2"/><ellipse cx="12" cy="10" rx="4.5" ry="3" fill="#55253b"/><line x1="6" y1="16" x2="18" y2="16" stroke="#55253b" stroke-width="1.8"/><polygon points="6,22 10,18 14,22" fill="#55253b"/><polygon points="10,22 15,20 16,24" fill="#55253b"/><polygon points="18,5 25,9 18,13" fill="#1281ff"/></svg>
+      <div class="login-logo-wm">headmap<em>&#9658;</em></div>
+    </div>
+    <div class="login-title">Vitaj späť</div>
+    <div class="login-sub">Prihlás sa do SOPs Builder</div>
+    <div class="login-field">
+      <label>Používateľské meno</label>
+      <input type="text" id="l-username" placeholder="admin" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-field">
+      <label>Heslo</label>
+      <input type="password" id="l-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()" id="login-btn">Prihlásiť sa</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ── ADMIN PANEL OVERLAY ── -->
+<div class="admin-overlay hidden" id="admin-overlay" onclick="if(event.target===this)closeAdmin()">
+  <div class="admin-panel">
+    <div class="ap-hdr">
+      <h3>&#128101; Správa používateľov</h3>
+      <button class="mx" onclick="closeAdmin()">&#10005;</button>
+    </div>
+    <div class="ap-body">
+      <div id="users-list">Načítavam…</div>
+      <div class="ap-add">
+        <h4>+ Nový používateľ</h4>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div><label class="fl">Meno na zobrazenie</label><input class="fi" id="nu-display" placeholder="Jana Nováková"></div>
+          <div><label class="fl">Používateľské meno</label><input class="fi" id="nu-username" placeholder="jana" autocomplete="off"></div>
+          <div><label class="fl">Heslo</label><input class="fi" id="nu-password" type="password" placeholder="min. 4 znaky"></div>
+          <div><label class="fl">Rola</label>
+            <select class="fi" id="nu-role"><option value="user">Používateľ</option><option value="admin">Admin</option></select>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="createUser()" style="align-self:flex-end">Vytvoriť</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="save-dot" id="save-dot"></div>
+<header>
+  <div class="logo">
+    <svg width="24" height="28" viewBox="0 0 26 30" fill="none"><path d="M3 1H17Q23 1 23 9Q23 21 17 29H3Z" stroke="#f7eacf" stroke-width="2" fill="none"/><line x1="3" y1="1" x2="23" y2="1" stroke="#f7eacf" stroke-width="2"/><ellipse cx="12" cy="10" rx="4.5" ry="3" fill="#f7eacf"/><line x1="6" y1="16" x2="18" y2="16" stroke="#f7eacf" stroke-width="1.8"/><polygon points="6,22 10,18 14,22" fill="#f7eacf"/><polygon points="10,22 15,20 16,24" fill="#f7eacf"/><polygon points="18,5 25,9 18,13" fill="#4fa4ff"/></svg>
+    <div><div class="logo-wm">headmap<em>&#9658;</em></div><span class="logo-sub">SOPs Builder</span></div>
+  </div>
+  <div class="hdr-r">
+    <button class="btn btn-sm" id="theme-btn" style="background:rgba(247,234,207,.1);color:#f7eacf;border:1px solid rgba(247,234,207,.2)" onclick="cycleTheme()">&#9681; Biela</button>
+    <button class="btn btn-g btn-sm" onclick="exportData()" title="Záloha dát">&#8659; Záloha</button>
+    <label class="btn btn-g btn-sm" style="cursor:pointer" title="Obnoviť zo zálohy">&#8657; Obnoviť<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
+    <div class="user-pill" id="user-pill" onclick="onUserPillClick()">
+      <div class="user-av" id="user-av">?</div>
+      <div>
+        <div class="user-name" id="user-name-lbl">—</div>
+        <div class="user-role" id="user-role-lbl">—</div>
+      </div>
+    </div>
+    <button class="btn btn-g btn-sm" onclick="doLogout()" title="Odhlásiť">&#10005;</button>
+  </div>
+</header>
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-sop-btn" onclick="switchTab('sop')">&#9776; SOPs <span class="tbadge" id="sop-badge">0</span></button>
+  <button class="tab-btn" id="tab-rd-btn" onclick="switchTab('rd')">&#127959; Roly &amp; Divízie</button>
+  <button class="tab-btn" id="tab-team-btn" onclick="switchTab('team')">&#9711; Tím <span class="tbadge" id="team-badge">0</span></button>
+</div>
+<div class="app">
+  <div class="tp active" id="tab-sop">
+    <div id="sop-list-view" style="flex:1;overflow:hidden;min-height:0;display:flex">
+      <div class="sop-list-page">
+        <div class="page-hdr">
+          <div><h2>SOPs</h2><p>Štandardné operačné postupy</p></div>
+          <div style="display:flex;gap:7px;align-items:center">
+            <div class="view-toggle">
+              <button class="vtb active" id="sg-btn" onclick="setSopView('grid')"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg></button>
+              <button class="vtb" id="sl-btn" onclick="setSopView('list')"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="0" y="6" width="14" height="2" rx="1"/><rect x="0" y="11" width="14" height="2" rx="1"/></svg></button>
+            </div>
+            <button class="map-btn" id="map-btn" onclick="toggleMapView()">&#128202; Mapa</button>
+            <button class="btn btn-p btn-sm" onclick="newSop()">+ Nový SOP</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <span class="filter-lbl">&#127959; Divízie</span>
+          <button class="filt-all active" id="filt-all-btn" onclick="setDivFilter(null)">Všetky</button>
+          <div id="div-filter-pills" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+        </div>
+        <div id="sop-grid" class="sop-grid"></div>
+        <div id="sop-list-tbl" class="sop-list-wrap" style="display:none"><table class="sop-ltbl"><thead><tr><th>Názov</th><th>Ver.</th><th>Divízie</th><th>Roly</th><th>Kroky</th><th>Upravené</th><th></th></tr></thead><tbody id="sop-list-body"></tbody></table></div>
+        <div id="sop-map-container" style="display:none;padding:8px 0"><div style="font-size:11px;color:var(--tx3);margin-bottom:10px">Vzťahy medzi SOPs.</div><div style="overflow-x:auto"><div id="sop-map-svg"></div></div></div>
+        <div id="sop-empty" style="display:none;text-align:center;padding:48px 20px">
+          <div style="font-size:36px;margin-bottom:10px;opacity:.4">&#9776;</div>
+          <h3 style="font-size:14px;font-weight:600;margin-bottom:5px;color:var(--tx)">Žiadne SOPs</h3>
+          <p style="font-size:10.5px;color:var(--tx3);margin-bottom:14px">Vytvor prvý SOP alebo načítaj ukážky</p>
+          <button class="btn btn-p btn-sm" onclick="resetDefaults()">&#8635; Načítať ukážkové dáta</button>
+        </div>
+      </div>
+    </div>
+    <div id="sop-workspace" style="display:none;flex:1;overflow:hidden;min-height:0">
+      <div class="sop-ws">
+        <div class="ws-sb">
+          <div class="ws-topbar"><button class="ws-back" onclick="backToList()">&#8592; Späť</button><span class="ws-sopname" id="ws-sopname">SOP</span></div>
+          <div class="sb-sec"><div class="sb-lbl">Diagram</div><input class="sbi" id="d-title" type="text" style="margin-bottom:5px" oninput="onWsChange()"><input class="sbi" id="d-sub" type="text" oninput="onWsChange()"></div>
+          <div class="sb-sec">
+            <div class="sb-lbl">Divízie SOP</div>
+            <div id="ws-divs-active" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px"></div>
+            <button class="add-btn" style="font-size:9.5px;padding:4px 8px;margin-top:0" onclick="toggleWsDivPicker()">+ Priradiť divíziu</button>
+            <div id="ws-div-picker" style="display:none;margin-top:6px;padding:8px;background:var(--bg2);border:1px solid var(--brd2);border-radius:6px;max-height:130px;overflow-y:auto"></div>
+          </div>
+          <div class="sb-sec">
+            <div class="sb-lbl">Väzby SOP</div>
+            <div id="ws-rels-list" style="margin-bottom:5px"></div>
+            <button class="add-btn" style="font-size:9.5px;padding:4px 8px;margin-top:0" onclick="toggleWsRelPicker()">+ Pridať väzbu</button>
+            <div id="ws-rel-picker" style="display:none;margin-top:6px;padding:8px;background:var(--bg2);border:1px solid var(--brd2);border-radius:6px;max-height:150px;overflow-y:auto"></div>
+          </div>
+          <div class="sb-sec">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+              <div class="sb-lbl" style="margin-bottom:0">OKR — Cieľ SOP</div>
+              <button id="okr-edit-btn" class="btn btn-sm" style="font-size:9px;padding:2px 8px;background:var(--bg2);color:var(--tx3);border:1px solid var(--brd2)" onclick="toggleOkrEdit()">&#9998; Upraviť</button>
+            </div>
+            <div id="okr-display"></div>
+            <div id="okr-edit-form" style="display:none">
+              <input class="sbi" id="okr-objective" placeholder="Cieľ (Objective)…" style="margin-bottom:5px" oninput="autoSaveOkr()">
+              <div id="okr-kr-list" style="margin-bottom:4px"></div>
+              <button class="add-btn" style="font-size:9.5px;padding:3px 7px;margin-top:0" onclick="addKr()">+ Key Result</button>
+            </div>
+          </div>
+          <div class="sb-sec"><div class="sb-lbl">Kroky</div><div id="steps-list"></div><button class="add-btn" onclick="addStep()">+ Pridať krok</button></div>
+          <div class="sb-sec" style="flex:1"><div class="sb-lbl">Roly — z tímu</div><div id="person-picker"></div><div id="active-roles-list" style="margin-top:7px"></div></div>
+        </div>
+        <main class="preview">
+          <div class="ptitle" id="prev-title"></div>
+          <div class="psub" id="prev-sub"></div>
+          <div style="display:flex;gap:7px;margin-bottom:11px">
+            <button class="btn btn-sm" style="background:var(--bg2);color:var(--tx2);border:1px solid var(--brd2);font-size:10px;padding:4px 8px" onclick="exportPNG()">&#8595; PNG</button>
+            <button class="btn btn-sm" style="background:var(--bg2);color:var(--tx2);border:1px solid var(--brd2);font-size:10px;padding:4px 8px" onclick="exportHTML()">&#8595; HTML</button>
+          </div>
+          <div class="slw"><div id="sl-out"></div></div>
+        </main>
+        <div class="ai-panel" id="ai-panel">
+          <div class="ai-hdr" id="ai-hdr-el">
+            <span class="ai-bot-icon">&#129302;</span>
+            <span class="ai-vert">AI Helper</span>
+            <div class="ai-hdr-info"><div class="ai-hdr-title">AI Helper</div><span class="ai-hdr-sub">Pýtaj sa o SOP</span></div>
+            <button class="ai-mini-btn" id="ai-mini-btn" onclick="toggleAI(event)">&#8249;</button>
+          </div>
+          <div class="ai-body">
+            <div class="ai-key-bar"><input id="ai-key-inp" type="password" class="ai-key-inp" placeholder="Anthropic API kľúč (sk-ant-...)" oninput="saveKey(this.value)"><button class="ai-key-eye" onclick="toggleKeyVis()">&#128065;</button></div>
+            <div class="ai-msgs" id="ai-msgs"></div>
+            <div class="ai-qw" id="ai-quick"></div>
+            <div class="ai-ir"><textarea class="ai-inp" id="ai-inp" rows="1" placeholder="Opýtaj sa…" onkeydown="aiKey(event)" oninput="aiResize(this)"></textarea><button class="ai-sb" id="ai-send-btn" onclick="aiSend()">&#9654;</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tp" id="tab-rd">
+    <div class="rd-page">
+      <div class="page-hdr" style="margin-bottom:18px">
+        <div><h2>Roly &amp; Divízie</h2><p>Spravuj štruktúru firmy</p></div>
+      </div>
+      <div class="rd-cols">
+        <div class="rd-card">
+          <div class="rd-card-hdr">
+            <div><h3>&#127959; Firemné roly</h3><p>Hierarchia, level, kto komu reportuje</p></div>
+            <button class="btn btn-p btn-sm" onclick="openRoleModal()">+ Nová rola</button>
+          </div>
+          <div id="rd-roles-chips"></div>
+        </div>
+        <div class="rd-card">
+          <div class="rd-card-hdr">
+            <div><h3>&#128193; Firemné divízie</h3><p>Kategórie pre SOPs</p></div>
+            <button class="btn btn-p btn-sm" onclick="openDivModal()">+ Nová divízia</button>
+          </div>
+          <div id="rd-divs-chips"></div>
+        </div>
+      </div>
+      <div class="org-full">
+        <h3>&#128202; Firemná hierarchia</h3>
+        <div id="rd-org-chart"></div>
+      </div>
+    </div>
+  </div>
+  <div class="tp" id="tab-team">
+    <div class="team-page">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div><h2 style="font-size:16px;font-weight:700;color:var(--tx);letter-spacing:-.3px">Tím headmap</h2><p style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Správa členov</p></div>
+        <div style="display:flex;gap:7px;align-items:center">
+          <div class="view-toggle">
+            <button class="vtb active" id="vg-btn" onclick="setTeamView('grid')"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg></button>
+            <button class="vtb" id="vl-btn" onclick="setTeamView('list')"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="0" y="6" width="14" height="2" rx="1"/><rect x="0" y="11" width="14" height="2" rx="1"/></svg></button>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="openPersonModal()">+ Nová osoba</button>
+        </div>
+      </div>
+      <div id="people-grid" class="pgrid"></div>
+      <div id="people-list" class="list-wrap" style="display:none"><table class="ltbl"><thead><tr><th>Osoba</th><th>Roly</th><th>SOPs</th><th>Spolupráca</th><th>Email</th><th>Telefón</th><th>Karta</th><th>Narodeniny</th><th></th></tr></thead><tbody id="list-body"></tbody></table></div>
+      <div id="team-empty" style="display:none;text-align:center;padding:48px 20px;opacity:.45"><div style="font-size:36px;margin-bottom:10px">&#9711;</div><h3 style="font-size:13px;font-weight:600">Zatiaľ žiadni ľudia</h3></div>
+    </div>
+  </div>
+</div>
+<div class="fbar"><span>headmap SOPs Builder &middot; <a href="https://www.headmap.sk" target="_blank">headmap.sk</a></span><span style="margin-left:auto">Od psychológie k rastu</span></div>
+
+<!-- PERSON MODAL -->
+<div class="mov hidden" id="person-modal" onclick="if(event.target===this)closePersonModal()">
+  <div class="modal">
+    <div class="mhdr"><h3 id="pm-ttl">Nová osoba</h3><button class="mx" onclick="closePersonModal()">&#10005;</button></div>
+    <div class="mbody">
+      <div class="av-row">
+        <div style="position:relative;flex-shrink:0">
+          <div class="av-prev" id="av-prev" style="background:#f0ddd0;color:#55253b">JP</div>
+          <button onclick="triggerPhotoUpload()" style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:#1281ff;border:2px solid var(--surf);color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1">+</button>
+        </div>
+        <div style="flex:1"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--tx3);margin-bottom:5px">Farba avatara</div><div class="ac-swatches" id="ac-row"></div><div id="pm-photo-info" style="font-size:9px;color:var(--tx3);margin-top:5px">Žiadna fotografia</div></div>
+        <input type="file" id="photo-file-inp" accept="image/*" style="display:none" onchange="onPhotoSelected(this)">
+      </div>
+      <div class="two-col"><div><label class="fl">Meno *</label><input class="fi" id="p-fname" placeholder="Juraj" oninput="prevAv()"></div><div><label class="fl">Priezvisko *</label><input class="fi" id="p-lname" placeholder="Petrík" oninput="prevAv()"></div></div>
+      <div><label class="fl">Skratka (swimlane) *</label><input class="fi" id="p-short" placeholder="JP" maxlength="4" oninput="this._me=this.value.length>0;prevAv()"></div>
+      <div><label class="fl">Roly headmap</label><div id="p-roles-list" style="display:flex;flex-direction:column;gap:4px;margin-top:3px;max-height:120px;overflow-y:auto;padding:6px 8px;background:var(--bg2);border:1px solid var(--brd2);border-radius:var(--r)"></div></div>
+      <div><label class="fl">Druh spolupráce</label><select class="fi" id="p-coop"><option value="">—</option><option value="FAKTURANT">Fakturant</option><option value="dohoda">Dohoda</option><option value="dohoda - student">Dohoda – študent</option><option value="HPP">HPP</option></select></div>
+      <div><label class="fl">Divízia</label><select class="fi" id="p-div"><option value="">—</option><option>Recruitment</option><option>Counseling</option><option value="HR Consulting &amp; Coaching">HR Consulting &amp; Coaching</option><option>Management</option><option>Operations</option></select></div>
+      <div><label class="fl">Firemný email</label><input class="fi" id="p-email" type="email" placeholder="meno@myheadmap.com"></div>
+      <div><label class="fl">Súkromný email</label><input class="fi" id="p-email2" type="email" placeholder="meno@gmail.com"></div>
+      <div><label class="fl">Telefón</label><input class="fi" id="p-phone" type="tel" placeholder="+421 900 000 000"></div>
+      <div class="two-col"><div><label class="fl">Office kartička</label><input class="fi" id="p-card" placeholder="13530"></div><div><label class="fl">Narodeniny</label><input class="fi" id="p-bday" placeholder="29.9."></div></div>
+    </div>
+    <div class="mft"><button class="btn btn-g btn-sm" onclick="closePersonModal()">Zrušiť</button><button class="btn btn-p btn-sm" onclick="savePerson()">Uložiť</button></div>
+  </div>
+</div>
+<!-- ROLE MODAL -->
+<div class="mov hidden" id="role-modal" onclick="if(event.target===this)closeRoleModal()">
+  <div class="modal" style="max-width:360px">
+    <div class="mhdr"><h3 id="rm-ttl">Nová rola</h3><button class="mx" onclick="closeRoleModal()">&#10005;</button></div>
+    <div class="mbody">
+      <div><label class="fl">Názov roly *</label><input class="fi" id="r-name" placeholder="COO, Recruiter…"></div>
+      <div><label class="fl">Level (1 = najvyšší) *</label><input class="fi" id="r-level" type="number" min="1" max="20" placeholder="1"></div>
+      <div><label class="fl">Popis</label><input class="fi" id="r-desc" placeholder="Zodpovedá za…"></div>
+      <div><label class="fl">Reportuje rolám</label><div id="r-reports-to" style="display:flex;flex-direction:column;gap:4px;margin-top:3px;min-height:28px;padding:6px 8px;background:var(--bg2);border:1px solid var(--brd2);border-radius:var(--r);max-height:100px;overflow-y:auto"></div></div>
+      <div><label class="fl">Farba</label><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:3px" id="rc-colors"></div></div>
+    </div>
+    <div class="mft"><button class="btn btn-g btn-sm" onclick="closeRoleModal()">Zrušiť</button><button class="btn btn-p btn-sm" onclick="saveRole()">Uložiť</button></div>
+  </div>
+</div>
+<!-- PHOTO CROP -->
+<div class="crop-mov hidden" id="crop-modal">
+  <div class="crop-box">
+    <div style="padding:12px 16px 10px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between"><h3 style="font-size:13px;font-weight:700;color:var(--tx)">Upraviť fotografiu</h3><button onclick="closeCropModal()" style="background:transparent;border:none;color:var(--tx3);font-size:16px;cursor:pointer">&#10005;</button></div>
+    <div class="crop-stage" id="crop-stage">
+      <img id="crop-img-el" class="crop-img-el">
+      <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"><defs><mask id="cmask"><rect width="100%" height="100%" fill="white"/><circle cx="50%" cy="50%" r="110" fill="black"/></mask></defs><rect width="100%" height="100%" fill="rgba(0,0,0,.55)" mask="url(#cmask)"/><circle cx="50%" cy="50%" r="110" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"/></svg>
+    </div>
+    <div class="crop-controls">
+      <div class="crop-zoom-row"><span class="crop-zoom-lbl">Zoom</span><input type="range" class="crop-zoom-inp" id="crop-zoom" min="0.5" max="4" step="0.01" value="1" oninput="onCropZoom(this.value)"><span class="crop-zoom-lbl" id="crop-zoom-val">1.0×</span></div>
+      <div style="display:flex;gap:7px;justify-content:flex-end;align-items:center">
+        <button class="btn btn-sm" style="background:transparent;color:var(--tx3);border:1px solid var(--brd2)" onclick="triggerPhotoUpload()">&#128247; Iná foto</button>
+        <button class="btn btn-g btn-sm" onclick="closeCropModal()">Zrušiť</button>
+        <button class="btn btn-p btn-sm" onclick="applyCrop()">&#10003; Použiť</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- DIV MODAL -->
+<div class="mov hidden" id="div-modal" onclick="if(event.target===this)closeDivModal()">
+  <div class="modal" style="max-width:340px">
+    <div class="mhdr"><h3 id="dm-ttl">Nová divízia</h3><button class="mx" onclick="closeDivModal()">&#10005;</button></div>
+    <div class="mbody">
+      <div><label class="fl">Názov divízie *</label><input class="fi" id="dv-name" placeholder="Recruitment, Sales…"></div>
+      <div><label class="fl">Popis (voliteľné)</label><input class="fi" id="dv-desc" placeholder="Zodpovedá za…"></div>
+      <div><label class="fl">Farba</label><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:3px" id="dv-colors"></div></div>
+    </div>
+    <div class="mft"><button class="btn btn-g btn-sm" onclick="closeDivModal()">Zrušiť</button><button class="btn btn-p btn-sm" onclick="saveDiv()">Uložiť</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// AUTH & API
+// ═══════════════════════════════════════════════════════
+const API = '/api';
+let authToken = sessionStorage.getItem('hm_token') || '';
+let currentUser = null;
+
+async function apiReq(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  const json = await r.json();
+  if (!r.ok) throw new Error(json.error || r.statusText);
+  return json;
+}
+
+async function doLogin() {
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-err');
+  const username = document.getElementById('l-username').value.trim();
+  const password = document.getElementById('l-password').value;
+  if (!username || !password) { showLoginErr('Vyplň obe polia.'); return; }
+  btn.textContent = 'Prihlasovanie…'; btn.disabled = true;
+  err.classList.remove('show');
+  try {
+    const data = await apiReq('POST', '/auth/login', { username, password });
+    authToken = data.token;
+    currentUser = data.user;
+    sessionStorage.setItem('hm_token', authToken);
+    document.getElementById('login-screen').classList.add('hidden');
+    updateUserUI();
+    await loadFromServer();
+  } catch(e) {
+    showLoginErr(e.message === 'Invalid credentials' ? 'Nesprávne meno alebo heslo.' : e.message);
+  } finally { btn.textContent = 'Prihlásiť sa'; btn.disabled = false; }
+}
+
+function showLoginErr(msg) {
+  const el = document.getElementById('login-err');
+  el.textContent = msg; el.classList.add('show');
+}
+
+function doLogout() {
+  authToken = ''; currentUser = null;
+  sessionStorage.removeItem('hm_token');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('l-password').value = '';
+}
+
+function updateUserUI() {
+  if (!currentUser) return;
+  const initials = (currentUser.displayName || currentUser.username).split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('user-av').textContent = initials;
+  document.getElementById('user-name-lbl').textContent = currentUser.displayName || currentUser.username;
+  document.getElementById('user-role-lbl').textContent = currentUser.role === 'admin' ? '👑 Admin' : 'Používateľ';
+}
+
+function onUserPillClick() {
+  if (currentUser?.role === 'admin') openAdmin();
+}
+
+// ── ADMIN PANEL ──
+async function openAdmin() {
+  document.getElementById('admin-overlay').classList.remove('hidden');
+  await refreshUsersList();
+}
+function closeAdmin() { document.getElementById('admin-overlay').classList.add('hidden'); }
+
+async function refreshUsersList() {
+  const el = document.getElementById('users-list');
+  try {
+    const users = await apiReq('GET', '/users');
+    el.innerHTML = users.map(u => `
+      <div class="user-row">
+        <div class="ur-av" style="background:${u.role==='admin'?'#55253b':'#1281ff'}">${(u.displayName||u.username).split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>
+        <div class="ur-info">
+          <div class="ur-name">${esc(u.displayName)}</div>
+          <div class="ur-meta">@${esc(u.username)} · ${u.role === 'admin' ? '👑 Admin' : 'User'}</div>
+        </div>
+        <div class="ur-acts">
+          ${u.id !== currentUser?.id ? `<button class="ur-act" onclick="deleteUser('${u.id}')">&#10005;</button>` : '<span style="font-size:9px;color:var(--tx3)">You</span>'}
+        </div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<div style="color:var(--red);font-size:11px">'+esc(e.message)+'</div>'; }
+}
+
+async function createUser() {
+  const displayName = document.getElementById('nu-display').value.trim();
+  const username = document.getElementById('nu-username').value.trim();
+  const password = document.getElementById('nu-password').value;
+  const role = document.getElementById('nu-role').value;
+  if (!displayName || !username || !password) { alert('Vyplň všetky polia.'); return; }
+  try {
+    await apiReq('POST', '/users', { displayName, username, password, role });
+    document.getElementById('nu-display').value='';
+    document.getElementById('nu-username').value='';
+    document.getElementById('nu-password').value='';
+    showToast('&#10003; Používateľ vytvorený');
+    await refreshUsersList();
+  } catch(e) { alert(e.message); }
+}
+
+async function deleteUser(id) {
+  if (!confirm('Zmazať používateľa?')) return;
+  try { await apiReq('DELETE', '/users/'+id); await refreshUsersList(); showToast('Používateľ zmazaný'); }
+  catch(e) { alert(e.message); }
+}
+
+// ═══════════════════════════════════════════════════════
+// APP DATA SYNC
+// ═══════════════════════════════════════════════════════
+let _saveTimer = null;
+async function saveAll() {
+  try {
+    const d = {
+      theme,
+      roles: companyRoles.map(r=>({i:r.id,n:r.name,lv:r.level,d:r.desc||'',c:r.color,rt:r.reportsTo||[]})),
+      divisions: companyDivs.map(d=>({i:d.id,n:d.name,d:d.desc||'',c:d.color})),
+      people: people.map(p=>({i:p.id,fn:p.fname||'',ln:p.lname||'',sh:p.short||'',ri:p.roleIds||[],co:p.coop||'',di:p.div||'',em:p.email||'',e2:p.email2||'',ph:p.phone||'',ca:p.card||'',bd:p.bday||'',ci:p.ci||0,pt:p.photo||''})),
+      sops: sops.map(s=>({i:s.id,ti:s.title,su:s.subtitle||'',v:s.version||'v1.0',up:s.updatedAt||Date.now(),ic:s.icon||'📋',di:s.divIds||[],rl:(s.relations||[]).map(r=>({t:r.targetId,y:r.type})),ok:s.okr||null,
+        sw:s.swimRoles.map(r=>({i:r.id,pi:r.personId,c:r.colorIdx})),
+        st:s.steps.map(st=>({i:st.id,ti:st.title,tk:Object.fromEntries(Object.entries(st.tasks).map(([rid,ts])=>[rid,ts.map(t=>({ti:t.title,su:t.sub}))]))}))}))
+    };
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(async () => {
+      await apiReq('PUT', '/data', d);
+      flashSave();
+    }, 800);
+  } catch(e) { console.error('save', e); }
+}
+
+async function loadFromServer() {
+  try {
+    const d = await apiReq('GET', '/data');
+    applyTheme(d.theme || 'white');
+    companyRoles = (d.roles||[]).map(r=>({id:r.i,name:r.n,level:r.lv,desc:r.d||'',color:r.c,reportsTo:r.rt||[]}));
+    companyDivs = (d.divisions||[]).map(dv=>({id:dv.i,name:dv.n,desc:dv.d||'',color:dv.c}));
+    people = (d.people||[]).map(p=>({id:p.i,fname:p.fn,lname:p.ln,short:p.sh,roleIds:Array.isArray(p.ri)?p.ri:[],coop:p.co,div:p.di,email:p.em,email2:p.e2,phone:p.ph,card:p.ca,bday:p.bd,ci:p.ci||0,photo:p.pt||''}));
+    sops = (d.sops||[]).map(s=>({id:s.i,title:s.ti,subtitle:s.su||'',version:s.v||'v1.0',updatedAt:s.up||Date.now(),icon:s.ic||'📋',divIds:s.di||[],relations:(s.rl||[]).map(r=>({targetId:r.t,type:r.y})),okr:s.ok||null,
+      swimRoles:(s.sw||[]).map(r=>({id:r.i,personId:r.pi,colorIdx:r.c})),
+      steps:(s.st||[]).map(st=>({id:st.i,title:st.ti,tasks:Object.fromEntries(Object.entries(st.tk||{}).map(([rid,ts])=>[rid,ts.map(t=>({id:uid(),title:t.ti,sub:t.su}))]))}))
+    }));
+    activeSopId=null; activeDivFilter=null;
+    backToList(); renderSopPage();
+  } catch(e) { console.error('load', e); }
+}
+
+// Check if already logged in
+(async function init() {
+  if (!authToken) return;
+  try {
+    currentUser = await apiReq('GET', '/auth/me');
+    document.getElementById('login-screen').classList.add('hidden');
+    updateUserUI();
+    await loadFromServer();
+  } catch(e) {
+    authToken = ''; sessionStorage.removeItem('hm_token');
+  }
+})();
+
+// ═══════════════════════════════════════════════════════
+// ORIGINAL APP LOGIC (adapted for server persistence)
+// ═══════════════════════════════════════════════════════
+const PALS={white:[{bg:'#fdf0f4',text:'#55253b',border:'#924168',dot:'#55253b'},{bg:'#eaf2ff',text:'#0c3d7a',border:'#1281ff',dot:'#1281ff'},{bg:'#fdf5e6',text:'#614030',border:'#c8a070',dot:'#9a6040'},{bg:'#edfaf3',text:'#1a5030',border:'#40a060',dot:'#2d7a4a'},{bg:'#fff8eb',text:'#6a3a08',border:'#d08020',dot:'#b06010'},{bg:'#fff0f5',text:'#6a1838',border:'#c84068',dot:'#a02850'}],beige:[{bg:'#f0ddd0',text:'#55253b',border:'#924168',dot:'#55253b'},{bg:'#d8eaff',text:'#0c3d7a',border:'#1281ff',dot:'#1281ff'},{bg:'#efe0c3',text:'#614030',border:'#c8a070',dot:'#9a6040'},{bg:'#d8f0e0',text:'#1a5030',border:'#40a060',dot:'#2d7a4a'},{bg:'#faebd0',text:'#6a3a08',border:'#d08020',dot:'#b06010'},{bg:'#f8dde8',text:'#6a1838',border:'#c84068',dot:'#a02850'}],burg:[{bg:'#612a44',text:'#f7eacf',border:'#924168',dot:'#f7eacf'},{bg:'#182848',text:'#4fa4ff',border:'#1281ff',dot:'#4fa4ff'},{bg:'#3c2010',text:'#f0c080',border:'#c08040',dot:'#e0a060'},{bg:'#102818',text:'#60d090',border:'#308050',dot:'#50c080'},{bg:'#382808',text:'#f0c050',border:'#c09020',dot:'#e0b040'},{bg:'#3c1030',text:'#f090c0',border:'#c04080',dot:'#e060a0'}]};
+const AVC=[{bg:'#f0ddd0',text:'#55253b'},{bg:'#d8eaff',text:'#0c3d7a'},{bg:'#efe0c3',text:'#614030'},{bg:'#d8f0e0',text:'#1a5030'},{bg:'#55253b',text:'#f7eacf'},{bg:'#1281ff',text:'#fff'},{bg:'#2d7a4a',text:'#fff'},{bg:'#b06010',text:'#fff'}];
+const RC=['#1281ff','#924168','#2d7a4a','#b06010','#a02850','#4fa4ff','#55253b','#614030'];
+const TLBL={white:'&#9681; Biela',beige:'&#9681; Bezova',burg:'&#9681; Bordova'};
+const REL_TYPES={parent:{label:'Nadradeny',arrow:'solid',color:'#1281ff'},child:{label:'Podriadeny',arrow:'solid',color:'#924168'},related:{label:'Suvisi',arrow:'dashed',color:'#2d7a4a'}};
+let theme='white',PAL=PALS.white;
+function applyTheme(t){theme=t;PAL=PALS[t];document.body.className=t==='white'?'':'th-'+t;const b=document.getElementById('theme-btn');if(b)b.innerHTML=TLBL[t]}
+function cycleTheme(){const o=['white','beige','burg'];applyTheme(o[(o.indexOf(theme)+1)%3]);saveAll()}
+function uid(){return Math.random().toString(36).slice(2,8)}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function pName(p){return((p.fname||'')+(p.lname?' '+p.lname:'')).trim()||''}
+function pInit(p){return p.short||((p.fname||'')[0]||'').toUpperCase()+((p.lname||'')[0]||'').toUpperCase()||'?'}
+function getPersonRoles(p){return(p.roleIds||[]).map(id=>companyRoles.find(r=>r.id===id)).filter(Boolean)}
+function showToast(m){const t=document.getElementById('toast');t.innerHTML=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+function flashSave(){const d=document.getElementById('save-dot');d.classList.add('show');clearTimeout(d._t);d._t=setTimeout(()=>d.classList.remove('show'),1200)}
+function avHtml(p,size){const ac=AVC[p.ci]||AVC[0];if(p.photo)return`<img src="${p.photo}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block">`;return`<span style="color:${ac.text}">${esc(pInit(p))}</span>`}
+function avBg(p){const ac=AVC[p.ci]||AVC[0];return p.photo?'transparent':ac.bg}
+let companyRoles=[],companyDivs=[],people=[],sops=[];
+let activeSopId=null,activeDivFilter=null;
+function activeSop(){return sops.find(s=>s.id===activeSopId)||null}
+
+// ── TABS ──
+let activeTab='sop';
+function switchTab(t){activeTab=t;['sop','rd','team'].forEach(id=>{document.getElementById('tab-'+id).classList.toggle('active',id===t);document.getElementById('tab-'+id+'-btn').classList.toggle('active',id===t)});if(t==='rd'){renderRdTab()}if(t==='team'){renderGrid()}}
+function renderRdTab(){renderRolesSection();renderRdDivs();renderRdOrgChart()}
+
+// ── SOP PAGE ──
+let sopView='grid',mapVisible=false;
+function setSopView(v){sopView=v;document.getElementById('sg-btn').classList.toggle('active',v==='grid');document.getElementById('sl-btn').classList.toggle('active',v==='list');document.getElementById('sop-grid').style.display=v==='grid'?'grid':'none';document.getElementById('sop-list-tbl').style.display=v==='list'?'block':'none';renderSopPage()}
+function toggleMapView(){mapVisible=!mapVisible;document.getElementById('sop-map-container').style.display=mapVisible?'block':'none';document.getElementById('map-btn').classList.toggle('active',mapVisible);if(mapVisible)renderSopMap()}
+function setDivFilter(id){activeDivFilter=id;document.getElementById('filt-all-btn').classList.toggle('active',!id);document.querySelectorAll('.div-pill').forEach(p=>p.classList.remove('active'));if(id){const pill=document.querySelector(`.div-pill[data-id="${id}"]`);if(pill)pill.classList.add('active')}renderSopPage()}
+function renderSopPage(){
+  document.getElementById('sop-badge').textContent=sops.length;
+  const filtered=activeDivFilter?sops.filter(s=>(s.divIds||[]).includes(activeDivFilter)):sops;
+  const empty=document.getElementById('sop-empty');
+  document.getElementById('sop-grid').innerHTML='';document.getElementById('sop-list-body').innerHTML='';
+  const pills=document.getElementById('div-filter-pills');
+  pills.innerHTML=companyDivs.map(d=>`<div class="div-pill${activeDivFilter===d.id?' active':''}" data-id="${d.id}" style="color:${d.color};border-color:${d.color};background:${activeDivFilter===d.id?d.color+'22':'transparent'}" onclick="setDivFilter('${d.id}')"><span class="lbl-dot" style="background:${d.color}"></span>${esc(d.name)}</div>`).join('');
+  empty.style.display=(!filtered.length&&!companyDivs.length)?'flex':filtered.length?'none':'flex';
+  if(!filtered.length)return;
+  if(sopView==='grid'){document.getElementById('sop-grid').innerHTML=filtered.map(s=>{const divBadges=(s.divIds||[]).map(did=>{const d=companyDivs.find(x=>x.id===did);return d?`<div class="sop-div-badge" style="background:${d.color}22;color:${d.color};border:1px solid ${d.color}44"><span class="lbl-dot" style="background:${d.color}"></span>${esc(d.name)}</div>`:''}).join('');const nRoles=s.swimRoles.length,nSteps=s.steps.length;return`<div class="sop-card" onclick="openSop('${s.id}')"><div class="sop-acts"><button class="sop-act edit" onclick="event.stopPropagation();openSop('${s.id}')">&#9998;</button><button class="sop-act" onclick="event.stopPropagation();delSop('${s.id}')">&#10005;</button></div><div class="sop-card-top"><div class="sop-icon">${s.icon||'📋'}</div><div class="sop-title">${esc(s.title)}</div><div class="sop-ver">${esc(s.version||'v1.0')}</div></div>${divBadges?`<div class="sop-divs">${divBadges}</div>`:''}<div class="sop-meta">${nRoles?`<span class="sop-mpill">&#9711; ${nRoles} roli</span>`:''}<span class="sop-mpill">&#9776; ${nSteps} krokov</span><span class="sop-mpill" style="margin-left:auto">${fmtDate(s.updatedAt)}</span></div></div>`}).join('')}
+  else{document.getElementById('sop-list-body').innerHTML=filtered.map(s=>{const divNames=(s.divIds||[]).map(did=>{const d=companyDivs.find(x=>x.id===did);return d?esc(d.name):''}).filter(Boolean).join(', ');return`<tr onclick="openSop('${s.id}')"><td><strong>${esc(s.title)}</strong></td><td>${esc(s.version||'v1.0')}</td><td>${divNames||'—'}</td><td>${s.swimRoles.length}</td><td>${s.steps.length}</td><td>${fmtDate(s.updatedAt)}</td><td><button class="sop-act" onclick="event.stopPropagation();delSop('${s.id}')">&#10005;</button></td></tr>`}).join('')}
+  if(mapVisible)renderSopMap();
+}
+function fmtDate(ts){if(!ts)return'';const d=new Date(ts);return d.toLocaleDateString('sk-SK',{day:'2-digit',month:'2-digit'})}
+function newSop(){const id=uid();sops.push({id,title:'Nový SOP',subtitle:'',version:'v1.0',updatedAt:Date.now(),icon:'📋',divIds:[],relations:[],okr:null,swimRoles:[],steps:[{id:uid(),title:'Krok 1',tasks:{}}]});saveAll();openSop(id)}
+function delSop(id){if(!confirm('Zmazať SOP?'))return;sops=sops.filter(s=>s.id!==id);if(activeSopId===id){activeSopId=null;backToList()}renderSopPage();saveAll()}
+function openSop(id){activeSopId=id;const s=activeSop();if(!s)return;document.getElementById('sop-list-view').style.display='none';document.getElementById('sop-workspace').style.display='flex';document.getElementById('ws-sopname').textContent=s.title;document.getElementById('d-title').value=s.title;document.getElementById('d-sub').value=s.subtitle||'';renderWsSidebar();renderWsDivs();renderWsRels();renderPreview();renderOkr();aiQBtns(['Zhrn SOP','Kto su role?','Kolko krokov?'])}
+function backToList(){activeSopId=null;document.getElementById('sop-list-view').style.display='flex';document.getElementById('sop-workspace').style.display='none';renderSopPage()}
+function onWsChange(){const s=activeSop();if(!s)return;s.title=document.getElementById('d-title').value;s.subtitle=document.getElementById('d-sub').value;s.updatedAt=Date.now();document.getElementById('ws-sopname').textContent=s.title;renderPreview();saveAll()}
+
+// ── WS DIVS ──
+function renderWsDivs(){const s=activeSop();if(!s)return;const active=document.getElementById('ws-divs-active');active.innerHTML=(s.divIds||[]).map(did=>{const d=companyDivs.find(x=>x.id===did);return d?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:600;background:${d.color}18;color:${d.color};border:1px solid ${d.color}44;border-radius:10px;padding:2px 8px">${esc(d.name)}<button onclick="removeDivFromSop('${d.id}')" style="background:transparent;border:none;color:${d.color};cursor:pointer;font-size:10px;padding:0 0 0 3px;line-height:1">&#10005;</button></span>`:''}).join('')}
+function toggleWsDivPicker(){const p=document.getElementById('ws-div-picker');const open=p.style.display==='none';p.style.display=open?'block':'none';if(!open)return;const s=activeSop();const active=new Set(s.divIds||[]);p.innerHTML=companyDivs.length?companyDivs.map(d=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 4px;cursor:pointer;border-radius:5px" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" onclick="toggleDivOnSop('${d.id}')"><span style="width:8px;height:8px;border-radius:50%;background:${d.color};flex-shrink:0"></span><span style="font-size:10.5px;flex:1">${esc(d.name)}</span>${active.has(d.id)?'<span style="color:#2d7a4a;font-size:11px">&#10003;</span>':''}</div>`).join(''):'<div style="font-size:10px;color:var(--tx3)">Pridaj divízie v Roly &amp; Divízie</div>'}
+function toggleDivOnSop(did){const s=activeSop();if(!s)return;if(!s.divIds)s.divIds=[];const i=s.divIds.indexOf(did);if(i>=0)s.divIds.splice(i,1);else s.divIds.push(did);s.updatedAt=Date.now();renderWsDivs();renderPreview();saveAll()}
+function removeDivFromSop(did){const s=activeSop();if(!s)return;s.divIds=(s.divIds||[]).filter(x=>x!==did);renderWsDivs();renderPreview();saveAll()}
+
+// ── WS RELS ──
+function renderWsRels(){const s=activeSop();if(!s)return;document.getElementById('ws-rels-list').innerHTML=(s.relations||[]).map((r,i)=>{const t=sops.find(x=>x.id===r.targetId);const rt=REL_TYPES[r.type]||REL_TYPES.related;return t?`<div style="display:flex;align-items:center;gap:5px;padding:4px 5px;background:var(--bg2);border-radius:5px;margin-bottom:3px"><span style="font-size:9px;font-weight:700;color:${rt.color};flex-shrink:0">${rt.label}</span><span style="font-size:10px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.title)}</span><button class="del-btn" onclick="removeRel(${i})">&#10005;</button></div>`:''}).join('')}
+function toggleWsRelPicker(){const s=activeSop();if(!s)return;const p=document.getElementById('ws-rel-picker');const open=p.style.display==='none';p.style.display=open?'block':'none';if(!open)return;const existing=new Set((s.relations||[]).map(r=>r.targetId));const others=sops.filter(x=>x.id!==s.id&&!existing.has(x.id));if(!others.length){p.innerHTML='<div style="font-size:10px;color:var(--tx3)">Žiadne iné SOPs</div>';return}p.innerHTML='<select id="ws-rel-type" style="font-family:\'Poppins\',sans-serif;font-size:10px;background:var(--bg2);border:1px solid var(--brd2);border-radius:5px;color:var(--tx);padding:3px 6px;outline:none;width:100%;margin-bottom:7px">'+Object.entries(REL_TYPES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('')+'</select>'+others.map(sop=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 4px;cursor:pointer;border-radius:5px" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" onclick="addRel('${sop.id}')"><span style="font-size:13px">${sop.icon||'📋'}</span><span style="font-size:10.5px;font-weight:500;color:var(--tx);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(sop.title)}</span></div>`).join('')}
+function addRel(targetId){const s=activeSop();if(!s)return;if(!s.relations)s.relations=[];const type=document.getElementById('ws-rel-type')?.value||'related';if(!s.relations.find(r=>r.targetId===targetId)){s.relations.push({targetId,type});s.updatedAt=Date.now();renderWsRels();document.getElementById('ws-rel-picker').style.display='none';saveAll()}}
+function removeRel(i){const s=activeSop();if(!s)return;s.relations.splice(i,1);s.updatedAt=Date.now();renderWsRels();saveAll()}
+
+// ── SOP MAP ──
+function renderSopMap(){const filtered=activeDivFilter?sops.filter(s=>(s.divIds||[]).includes(activeDivFilter)):sops;if(!filtered.length){document.getElementById('sop-map-svg').innerHTML='<div style="padding:28px;text-align:center;color:var(--tx3);font-size:11px">Žiadne SOPs</div>';return}const fIds=new Set(filtered.map(s=>s.id));const NW=180,NH=58,PX=36,PY=80;const cols=Math.max(1,Math.min(4,Math.ceil(Math.sqrt(filtered.length))));const rows=Math.ceil(filtered.length/cols);const svgW=Math.max(480,cols*(NW+PX)+40);const svgH=rows*(NH+PY)+40;const pos={};filtered.forEach((s,i)=>{const col=i%cols,row=Math.floor(i/cols);pos[s.id]={x:20+col*(NW+PX),y:20+row*(NH+PY)}});const isDark=document.body.classList.contains('th-burg');const nbg=isDark?'#491e31':'#fff';const ntx=isDark?'#f7eacf':'#1a1a1a';const ntx3=isDark?'#decbae':'#888';const nbrd=isDark?'#763454':'#e0e0e0';let edges='',defs='',nodes='';filtered.forEach(s=>{(s.relations||[]).forEach(rel=>{if(!fIds.has(rel.targetId))return;const f=pos[s.id],to=pos[rel.targetId];if(!f||!to)return;const rt=REL_TYPES[rel.type]||REL_TYPES.related;const eid='e'+s.id.slice(0,4)+rel.targetId.slice(0,4);const x1=f.x+NW/2,y1=f.y+NH,x2=to.x+NW/2,y2=to.y,mx=(x1+x2)/2,my=(y1+y2)/2;defs+=`<marker id="${eid}" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" fill="${rt.color}" opacity="0.8"/></marker>`;edges+=`<path d="M${x1},${y1} C${mx},${my+20} ${x2},${my-20} ${x2},${y2}" fill="none" stroke="${rt.color}" stroke-width="2" ${rel.type==='related'?'stroke-dasharray="6,4"':''} opacity="0.75" marker-end="url(#${eid})"/>`;edges+=`<text x="${mx}" y="${my}" text-anchor="middle" font-size="9" fill="${rt.color}" font-family="Poppins,sans-serif" opacity="0.8">${rt.label}</text>`})});filtered.forEach(s=>{const p=pos[s.id];if(!p)return;const x=p.x,y=p.y;const titleTxt=s.title.length>22?s.title.slice(0,20)+'...':s.title;const divDots=(s.divIds||[]).map((did,i)=>{const dv=companyDivs.find(x=>x.id===did);return dv?`<circle cx="${x+NW-12-(i*14)}" cy="${y+10}" r="5" fill="${dv.color}"/>`:''}).join('');nodes+=`<g onclick="openSop('${s.id}')" style="cursor:pointer"><rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="9" fill="${nbg}" stroke="${nbrd}" stroke-width="1.5"/><text x="${x+11}" y="${y+21}" font-size="14" font-family="system-ui,sans-serif">${s.icon||'📋'}</text><text x="${x+33}" y="${y+21}" font-size="11" font-weight="600" fill="${ntx}" font-family="Poppins,sans-serif">${esc(titleTxt)}</text><text x="${x+11}" y="${y+40}" font-size="9" fill="${ntx3}" font-family="Poppins,sans-serif">${esc(s.version||'v1.0')} · ${s.steps.length} krokov</text>${divDots}</g>`});document.getElementById('sop-map-svg').innerHTML=`<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" style="min-width:${svgW}px"><defs>${defs}</defs>${edges}${nodes}</svg>`}
+
+// ── WS SIDEBAR ──
+function renderWsSidebar(){const s=activeSop();if(!s)return;const sr=s.swimRoles,st=s.steps;document.getElementById('steps-list').innerHTML=st.map((step,si)=>`<div class="sti"><div class="sth" onclick="toggleStep('${step.id}')"><span class="stnum">${si+1}</span><input class="stni" value="${esc(step.title)}" oninput="updStepTitle('${step.id}',this.value)" onclick="event.stopPropagation()"><button class="del-btn" onclick="event.stopPropagation();removeStep('${step.id}')">&#10005;</button></div><div class="stb" id="stb-${step.id}">${sr.map(r=>{const person=people.find(p=>p.id===r.personId);if(!person)return'';const tasks=step.tasks[r.id]||[];const pal=PAL[r.colorIdx];return`<div class="rsl" style="color:${pal.dot}">${esc(pInit(person))}</div>${tasks.map((tk,ti)=>`<div class="trow"><textarea class="tta" rows="2" oninput="updTask('${step.id}','${r.id}',${ti},this.value)">${esc(tk.title)+(tk.sub?'\n'+esc(tk.sub):'')}</textarea><button class="del-btn" onclick="removeTask('${step.id}','${r.id}',${ti})">&#10005;</button></div>`).join('')}<button class="add-btn" style="font-size:9px;padding:3px 7px;margin-top:2px" onclick="addTask('${step.id}','${r.id}')">+ ${esc(pInit(person))}</button>`}).join('')}</div></div>`).join('');const inSwim=new Set(sr.map(r=>r.personId));document.getElementById('person-picker').innerHTML=people.length?people.map(p=>{const inSW=inSwim.has(p.id);const roles=getPersonRoles(p);return`<div class="ppr-row"><div class="ppr-av" style="background:${avBg(p)};overflow:hidden;padding:${p.photo?'0':''}">` +avHtml(p,24)+`</div><div style="flex:1;min-width:0"><div class="ppr-nm">${esc(pName(p))}</div><div class="ppr-sub">${roles.length?esc(roles.map(r=>r.name).join(', ')):esc(p.coop||'')}</div></div><button class="ppr-btn${inSW?' in':''}" onclick="toggleSwimRole('${p.id}')">${inSW?'&#10003;':'+'}</button></div>`}).join(''):'<div style="font-size:10px;color:var(--tx3);text-align:center;padding:9px 0">Pridaj ľudí v karte Tím</div>';document.getElementById('active-roles-list').innerHTML=sr.length?'<div class="sb-lbl" style="margin-top:7px">Aktívne v diagrame</div>'+sr.map(r=>{const p2=people.find(p=>p.id===r.personId);if(!p2)return'';const pal=PAL[r.colorIdx];return`<div class="ri"><div class="rdot" style="background:${pal.dot}"></div><span style="font-size:10.5px;font-weight:500;flex:1">${esc(pInit(p2))} – ${esc(pName(p2).split(' ')[0])}</span><div class="sws">${PAL.map((p3,pi)=>`<div class="sw${r.colorIdx===pi?' on':''}" style="background:${p3.dot}" onclick="setSwimColor('${r.id}',${pi})"></div>`).join('')}</div><button class="del-btn" onclick="removeSwimRole('${r.id}')">&#10005;</button></div>`}).join(''):''}
+function toggleStep(id){document.getElementById('stb-'+id).classList.toggle('open')}
+function updStepTitle(id,val){const s=activeSop();if(!s)return;const st=s.steps.find(x=>x.id===id);if(st){st.title=val;s.updatedAt=Date.now();renderPreview();saveAll()}}
+function addStep(){const s=activeSop();if(!s)return;s.steps.push({id:uid(),title:'Nový krok',tasks:{}});s.updatedAt=Date.now();renderWsSidebar();renderPreview();saveAll()}
+function removeStep(id){const s=activeSop();if(!s||s.steps.length<=1)return;s.steps=s.steps.filter(x=>x.id!==id);s.updatedAt=Date.now();renderWsSidebar();renderPreview();saveAll()}
+function addTask(sid,rid){const s=activeSop();if(!s)return;const st=s.steps.find(x=>x.id===sid);if(!st.tasks[rid])st.tasks[rid]=[];st.tasks[rid].push({id:uid(),title:'',sub:''});renderWsSidebar();setTimeout(()=>{const b=document.getElementById('stb-'+sid);if(b)b.classList.add('open')},10);renderPreview();saveAll()}
+function removeTask(sid,rid,ti){const s=activeSop();if(!s)return;const st=s.steps.find(x=>x.id===sid);if(st.tasks[rid])st.tasks[rid].splice(ti,1);renderWsSidebar();renderPreview();saveAll()}
+function updTask(sid,rid,ti,val){const s=activeSop();if(!s)return;const st=s.steps.find(x=>x.id===sid);if(!st.tasks[rid])return;const ln=val.split('\n');st.tasks[rid][ti].title=ln[0]||'';st.tasks[rid][ti].sub=ln.slice(1).join(' ').trim();s.updatedAt=Date.now();renderPreview();saveAll()}
+function toggleSwimRole(pid){const s=activeSop();if(!s)return;const ex=s.swimRoles.find(r=>r.personId===pid);if(ex){s.swimRoles=s.swimRoles.filter(r=>r.personId!==pid);s.steps.forEach(st=>{delete st.tasks[ex.id]})}else{s.swimRoles.push({id:uid(),personId:pid,colorIdx:s.swimRoles.length%PAL.length})}s.updatedAt=Date.now();renderWsSidebar();renderPreview();saveAll()}
+function setSwimColor(rid,ci){const s=activeSop();if(!s)return;const r=s.swimRoles.find(x=>x.id===rid);if(r)r.colorIdx=ci;renderWsSidebar();renderPreview();saveAll()}
+function removeSwimRole(rid){const s=activeSop();if(!s)return;s.swimRoles=s.swimRoles.filter(x=>x.id!==rid);s.steps.forEach(st=>{delete st.tasks[rid]});s.updatedAt=Date.now();renderWsSidebar();renderPreview();saveAll()}
+
+// ── PREVIEW ──
+function renderPreview(){const s=activeSop();if(!s)return;document.getElementById('prev-title').textContent=document.getElementById('d-title').value;document.getElementById('prev-sub').textContent=document.getElementById('d-sub').value;const sr=s.swimRoles,st=s.steps;if(!sr.length||!st.length){document.getElementById('sl-out').innerHTML='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:12px">Pridaj ľudí a kroky v ľavom paneli.</div>';return}const hb=theme==='burg'?'#3c1626':theme==='white'?'#2d2d3f':'#55253b';let h=`<table class="slt" id="sl-tbl"><thead><tr><th style="background:${hb};color:${theme==='white'?'#f0f0f0':'#f7eacf'}"></th>`;st.forEach((step,i)=>{h+=`<th style="background:${hb};color:${theme==='white'?'#f0f0f0':'#f7eacf'}"><span class="ssn">${i+1}</span>${esc(step.title)}</th>`});h+='</tr></thead><tbody>';sr.forEach(r=>{const person=people.find(p=>p.id===r.personId);if(!person)return;const pal=PAL[r.colorIdx];const ca=theme==='burg'?'28':theme==='white'?'22':'18';h+=`<tr><td class="srl" style="color:${pal.text};background:${pal.bg};border-right-color:${pal.border}" title="${esc(pName(person))}">${esc(pInit(person))}</td>`;st.forEach(step=>{const tasks=step.tasks[r.id]||[];h+=`<td style="background:${pal.bg}${ca}"><div class="sc">`;if(!tasks.length)h+='<div class="se">—</div>';else tasks.forEach(tk=>{if(!tk.title&&!tk.sub)return;h+=`<div class="sk" style="background:${pal.bg};border-color:${pal.border};color:${pal.text}">`;if(tk.title)h+=`<b>${esc(tk.title)}</b>`;if(tk.sub)h+=`<small>${esc(tk.sub)}</small>`;h+='</div>'});h+='</div></td>'});h+='</tr>'});h+='</tbody></table>';document.getElementById('sl-out').innerHTML=h}
+
+// ── TEAM ──
+let teamView='grid';
+function setTeamView(v){teamView=v;document.getElementById('vg-btn').classList.toggle('active',v==='grid');document.getElementById('vl-btn').classList.toggle('active',v==='list');document.getElementById('people-grid').style.display=v==='grid'?'grid':'none';document.getElementById('people-list').style.display=v==='list'?'block':'none';renderGrid()}
+function getPersonSopInfo(pid){return sops.flatMap(s=>{const sr=s.swimRoles.find(r=>r.personId===pid);return sr?[{title:s.title,color:(PALS.white[sr.colorIdx]||PALS.white[0]).dot}]:[]})}
+function renderGrid(){document.getElementById('team-badge').textContent=people.length;const empty=document.getElementById('team-empty');if(!people.length){document.getElementById('people-grid').innerHTML='';document.getElementById('list-body').innerHTML='';empty.style.display='block';return}empty.style.display='none';document.getElementById('people-grid').innerHTML=people.map(p=>{const nm=pName(p);const roles=getPersonRoles(p);const sopInfo=getPersonSopInfo(p.id);return`<div class="pcard"><div class="pch"><div class="pcav" style="background:${avBg(p)}">${avHtml(p,40)}</div><div><div class="pcn">${esc(nm)}</div><div style="display:flex;flex-wrap:wrap;gap:2px;margin-top:2px">${roles.map(r=>`<div class="pc-role-badge"><span style="width:6px;height:6px;border-radius:50%;background:${r.color};display:inline-block;flex-shrink:0"></span>${esc(r.name)} L${r.level}</div>`).join('')}</div><div class="pcp">${esc(p.coop||'')}</div></div></div>${sopInfo.length?`<div class="pc-sops"><div class="pc-sops-lbl">&#9776; V swimlanes</div><div>${sopInfo.map(si=>`<span class="pc-sop-pill"><span style="width:6px;height:6px;border-radius:50%;background:${si.color};display:inline-block;flex-shrink:0"></span>${esc(si.title.length>22?si.title.slice(0,20)+'...':si.title)}</span>`).join('')}</div></div>`:''}${p.email?`<div style="font-size:9.5px;color:var(--tx3);padding:0 13px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@ ${esc(p.email)}</div>`:''}<div class="pcf"><button class="pce" onclick="openPersonModal('${p.id}')">&#9998; Upraviť</button><button class="del-btn" onclick="delPerson('${p.id}')">&#10005;</button></div></div>`}).join('');document.getElementById('list-body').innerHTML=people.map(p=>{const nm=pName(p);const roles=getPersonRoles(p);const sopInfo=getPersonSopInfo(p.id);return`<tr><td><div class="td-av"><div class="av-sm" style="background:${avBg(p)}">${avHtml(p,28)}</div><div><div class="td-name">${esc(nm)}</div><div class="td-pos">${esc(p.coop||'')}</div></div></div></td><td>${roles.length?roles.map(r=>`<span style="font-size:10px;font-weight:600;color:${r.color};margin-right:4px">${esc(r.name)}<span style="font-size:9px;color:var(--tx3)"> L${r.level}</span></span>`).join(''):'—'}</td><td style="font-size:10.5px">${sopInfo.length?sopInfo.map(si=>`<span style="display:inline-block;background:var(--bg2);border:1px solid var(--brd2);border-radius:10px;padding:1px 6px;font-size:9px;margin:1px">${esc(si.title.length>20?si.title.slice(0,18)+'...':si.title)}</span>`).join(''):'<span style="color:var(--tx3)">—</span>'}</td><td>${esc(p.coop||'—')}</td><td class="td-mono">${p.email?`<a href="mailto:${esc(p.email)}" style="color:var(--ac);text-decoration:none">${esc(p.email)}</a>`:'—'}</td><td class="td-mono">${esc(p.phone||'—')}</td><td style="font-family:monospace;font-size:10.5px">${esc(p.card||'—')}</td><td>${esc(p.bday||'—')}</td><td class="td-acts"><button onclick="openPersonModal('${p.id}')">&#9998;</button><button onclick="delPerson('${p.id}')" style="color:var(--red)">&#10005;</button></td></tr>`}).join('')}
+function delPerson(pid){people=people.filter(p=>p.id!==pid);sops.forEach(s=>{const sr=s.swimRoles.find(r=>r.personId===pid);if(sr){s.swimRoles=s.swimRoles.filter(r=>r.personId!==pid);s.steps.forEach(st=>{delete st.tasks[sr.id]})}});renderGrid();renderRdOrgChart();saveAll()}
+
+// ── ROLES ──
+function renderRolesSection(){const sorted=[...companyRoles].sort((a,b)=>a.level-b.level);const el=document.getElementById('rd-roles-chips');if(!el)return;el.innerHTML=sorted.map(r=>{const rt=(r.reportsTo||[]).map(rid=>{const rr=companyRoles.find(x=>x.id===rid);return rr?rr.name:''}).filter(Boolean).join(', ');return`<div class="role-chip"><div class="rc-dot" style="background:${r.color}"></div><span class="rc-name">${esc(r.name)}</span><span class="rc-lv">L${r.level}${r.desc?' · '+esc(r.desc):''}${rt?' → '+esc(rt):''}</span><button class="rc-edit" onclick="openRoleModal('${r.id}')">&#9998;</button><button class="rc-del" onclick="deleteRole('${r.id}')">&#10005;</button></div>`}).join('')}
+function deleteRole(id){companyRoles=companyRoles.filter(r=>r.id!==id);people.forEach(p=>{if(p.roleIds)p.roleIds=p.roleIds.filter(rid=>rid!==id)});renderRolesSection();renderGrid();renderRdOrgChart();renderSopPage();saveAll()}
+
+// ── ORG CHART (Roles tab) ──
+function renderRdOrgChart(){const el=document.getElementById('rd-org-chart');if(!el)return;const sorted=[...companyRoles].sort((a,b)=>a.level-b.level||a.name.localeCompare(b.name));if(!sorted.length){el.innerHTML='<div style="font-size:11px;color:var(--tx3);text-align:center;padding:12px 0">Pridaj role pre zobrazenie</div>';return}const NW=170,NH=72,PX=28,LH=130;const byLv={};sorted.forEach(r=>{if(!byLv[r.level])byLv[r.level]=[];byLv[r.level].push(r)});const levels=Object.keys(byLv).map(Number).sort((a,b)=>a-b);const maxR=Math.max(...levels.map(l=>byLv[l].length));const svgW=Math.max(600,maxR*(NW+PX)+40),svgH=(levels.length-1)*LH+NH+36;const pos={};levels.forEach(lv=>{const roles=byLv[lv];const total=roles.length*(NW+PX)-PX;const ox=(svgW-total)/2;roles.forEach((r,i)=>{pos[r.id]={x:ox+i*(NW+PX),y:(lv-levels[0])*LH+14}})});const isDark=document.body.classList.contains('th-burg');const nbg=isDark?'#491e31':'#fff';const t3=isDark?'#decbae':'#888';let edges='',defs='',nodes='';sorted.forEach(r=>{(r.reportsTo||[]).forEach(rid=>{const f=pos[r.id],to=pos[rid];if(!f||!to)return;const x1=f.x+NW/2,y1=f.y+4,x2=to.x+NW/2,y2=to.y+NH-4,mid=(y1+y2)/2;const eid='rd'+r.id.slice(0,4)+rid.slice(0,4);defs+=`<marker id="${eid}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><polygon points="0,0 7,3.5 0,7" fill="${r.color}" opacity="0.75"/></marker>`;edges+=`<path d="M${x1},${y1} C${x1},${mid} ${x2},${mid} ${x2},${y2}" fill="none" stroke="${r.color}" stroke-width="2" stroke-dasharray="6,4" opacity="0.65" marker-end="url(#${eid})"/>`})});sorted.forEach(r=>{const p2=pos[r.id];if(!p2)return;const x=p2.x,y=p2.y;const members=people.filter(p=>(p.roleIds||[]).includes(r.id));let avEls='';members.slice(0,4).forEach((p,mi)=>{const ax=x+10+mi*28,ay=y+NH-28;const ac2=AVC[p.ci]||AVC[0];const cl='rdcl-'+r.id.slice(0,4)+mi;if(p.photo){defs+=`<clipPath id="${cl}"><circle cx="${ax+10}" cy="${ay+10}" r="10"/></clipPath>`;avEls+=`<image href="${p.photo}" x="${ax}" y="${ay}" width="20" height="20" clip-path="url(#${cl})" preserveAspectRatio="xMidYMid slice"/>`}else{avEls+=`<circle cx="${ax+10}" cy="${ay+10}" r="10" fill="${ac2.bg}"/>`;avEls+=`<text x="${ax+10}" y="${ay+14}" text-anchor="middle" font-size="8" font-weight="700" fill="${ac2.text}" font-family="Poppins,sans-serif">${esc(pInit(p))}</text>`}});nodes+=`<g onclick="openRoleModal('${r.id}')" style="cursor:pointer"><rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="9" fill="${nbg}" stroke="${r.color}" stroke-width="2"/><rect x="${x}" y="${y}" width="${NW}" height="22" rx="9" fill="${r.color}" opacity="0.1"/><rect x="${x+NW-25}" y="${y}" width="25" height="12" fill="${r.color}"/><rect x="${x+NW-25}" y="${y+9}" width="25" height="13" fill="${r.color}"/><text x="${x+NW-12}" y="${y+14}" text-anchor="middle" font-size="9" font-weight="800" fill="white" font-family="Poppins,sans-serif">L${r.level}</text><text x="${x+9}" y="${y+14}" font-size="11.5" font-weight="700" fill="${r.color}" font-family="Poppins,sans-serif">${esc(r.name)}</text>${members.length?avEls:`<text x="${x+9}" y="${y+50}" font-size="9" fill="${t3}" font-family="Poppins,sans-serif">Bez clenov</text>`}${r.desc?`<text x="${x+(members.slice(0,4).length*28+14)}" y="${y+NH-10}" font-size="8.5" fill="${t3}" font-family="Poppins,sans-serif" opacity="0.7">${esc(r.desc.length>22?r.desc.slice(0,20)+'...':r.desc)}</text>`:''}</g>`});el.innerHTML=`<div class="org-svg-wrap"><svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}"><defs>${defs}</defs>${edges}${nodes}</svg></div>`}
+
+// ── PERSON MODAL ──
+let editPersonId=null,selAc=0,croppedPhoto='';
+function openPersonModal(id){editPersonId=id||null;selAc=0;croppedPhoto='';const p=id?people.find(x=>x.id===id):null;document.getElementById('pm-ttl').textContent=id?'Upraviť osobu':'Nová osoba';document.getElementById('p-fname').value=p?p.fname:'';document.getElementById('p-lname').value=p?p.lname:'';document.getElementById('p-short').value=p?p.short:'';document.getElementById('p-coop').value=p?p.coop:'';document.getElementById('p-div').value=p?p.div:'';document.getElementById('p-email').value=p?p.email:'';document.getElementById('p-email2').value=p?p.email2:'';document.getElementById('p-phone').value=p?p.phone:'';document.getElementById('p-card').value=p?p.card:'';document.getElementById('p-bday').value=p?p.bday:'';selAc=p?(p.ci||0):0;croppedPhoto=p?p.photo:'';document.getElementById('pm-photo-info').textContent=croppedPhoto?'Fotografia nahratá':'Žiadna fotografia';const acRow=document.getElementById('ac-row');acRow.innerHTML=AVC.map((ac,i)=>`<div class="ac-sw${i===selAc?' on':''}" style="background:${ac.bg};border:2px solid ${i===selAc?'var(--tx)':'transparent'}" onclick="pickAc(${i})"></div>`).join('');document.getElementById('p-roles-list').innerHTML=companyRoles.map(r=>{const checked=p&&(p.roleIds||[]).includes(r.id);return`<label class="chk-row"><input type="checkbox" value="${r.id}" ${checked?'checked':''}><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${r.color}"></span>${esc(r.name)} <span style="font-size:9px;color:var(--tx3)">L${r.level}</span></span></label>`}).join('');prevAv();document.getElementById('person-modal').classList.remove('hidden')}
+function closePersonModal(){document.getElementById('person-modal').classList.add('hidden');editPersonId=null}
+function pickAc(i){selAc=i;document.querySelectorAll('#ac-row .ac-sw').forEach((el,j)=>{el.classList.toggle('on',j===i);el.style.borderColor=j===i?'var(--tx)':'transparent'});prevAv()}
+function prevAv(){const fn=document.getElementById('p-fname').value||'';const ln=document.getElementById('p-lname').value||'';const sh=document.getElementById('p-short').value||'';const init=sh||(fn[0]||'').toUpperCase()+(ln[0]||'').toUpperCase()||'?';const ac=AVC[selAc]||AVC[0];const prev=document.getElementById('av-prev');if(croppedPhoto){prev.innerHTML=`<img src="${croppedPhoto}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;display:block">`;prev.style.background='transparent'}else{prev.innerHTML=`<span style="color:${ac.text}">${esc(init)}</span>`;prev.style.background=ac.bg}}
+function savePerson(){const fname=document.getElementById('p-fname').value.trim();const lname=document.getElementById('p-lname').value.trim();const short=document.getElementById('p-short').value.trim();if(!fname||!short){alert('Meno a skratka sú povinné.');return}const roleIds=Array.from(document.querySelectorAll('#p-roles-list input:checked')).map(el=>el.value);const data={fname,lname,short,roleIds,coop:document.getElementById('p-coop').value,div:document.getElementById('p-div').value,email:document.getElementById('p-email').value.trim(),email2:document.getElementById('p-email2').value.trim(),phone:document.getElementById('p-phone').value.trim(),card:document.getElementById('p-card').value.trim(),bday:document.getElementById('p-bday').value.trim(),ci:selAc,photo:croppedPhoto};if(editPersonId){const i=people.findIndex(p=>p.id===editPersonId);if(i!==-1)people[i]={...people[i],...data}}else people.push({id:uid(),...data});closePersonModal();renderGrid();renderRdOrgChart();if(activeSopId)renderWsSidebar();saveAll()}
+
+// ── PHOTO CROP ──
+let cropImg=null,cropX=0,cropY=0,cropZoom=1,cropDrag=false,cropStartX=0,cropStartY=0,cropOX=0,cropOY=0;
+function triggerPhotoUpload(){document.getElementById('photo-file-inp').click()}
+function onPhotoSelected(inp){if(!inp.files||!inp.files[0])return;const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{cropImg=img;cropX=0;cropY=0;cropZoom=1;document.getElementById('crop-zoom').value=1;document.getElementById('crop-zoom-val').textContent='1.0×';openCropModal()};img.src=e.target.result};r.readAsDataURL(inp.files[0]);inp.value=''}
+function openCropModal(){const el=document.getElementById('crop-img-el');el.src=cropImg.src;el.style.display='block';document.getElementById('crop-modal').classList.remove('hidden');renderCrop()}
+function closeCropModal(){document.getElementById('crop-modal').classList.add('hidden')}
+function renderCrop(){const el=document.getElementById('crop-img-el');const stage=document.getElementById('crop-stage');const W=stage.offsetWidth,H=stage.offsetHeight;const scale=cropZoom*Math.min(W/cropImg.width,H/cropImg.height);const iw=cropImg.width*scale,ih=cropImg.height*scale;const ox=(W-iw)/2+cropX,oy=(H-ih)/2+cropY;el.style.transform=`translate(${ox}px,${oy}px) scale(${scale})`;el.style.transformOrigin='0 0';el.style.width=cropImg.width+'px';el.style.height=cropImg.height+'px'}
+function onCropZoom(v){cropZoom=parseFloat(v);document.getElementById('crop-zoom-val').textContent=parseFloat(v).toFixed(1)+'×';renderCrop()}
+(function(){const stage=document.getElementById('crop-stage');stage.addEventListener('mousedown',e=>{cropDrag=true;cropStartX=e.clientX;cropStartY=e.clientY;cropOX=cropX;cropOY=cropY});stage.addEventListener('mousemove',e=>{if(!cropDrag)return;cropX=cropOX+(e.clientX-cropStartX);cropY=cropOY+(e.clientY-cropStartY);renderCrop()});stage.addEventListener('mouseup',()=>cropDrag=false);stage.addEventListener('mouseleave',()=>cropDrag=false);stage.addEventListener('touchstart',e=>{const t=e.touches[0];cropDrag=true;cropStartX=t.clientX;cropStartY=t.clientY;cropOX=cropX;cropOY=cropY},{passive:true});stage.addEventListener('touchmove',e=>{if(!cropDrag)return;const t=e.touches[0];cropX=cropOX+(t.clientX-cropStartX);cropY=cropOY+(t.clientY-cropStartY);renderCrop()},{passive:true});stage.addEventListener('touchend',()=>cropDrag=false)})();
+function applyCrop(){const stage=document.getElementById('crop-stage');const W=stage.offsetWidth,H=stage.offsetHeight;const R=110;const canvas=document.createElement('canvas');canvas.width=220;canvas.height=220;const ctx=canvas.getContext('2d');const scale=cropZoom*Math.min(W/cropImg.width,H/cropImg.height);const ox=(W-cropImg.width*scale)/2+cropX;const oy=(H-cropImg.height*scale)/2+cropY;const sx=(W/2-R-ox)/scale;const sy=(H/2-R-oy)/scale;const sw=2*R/scale;ctx.drawImage(cropImg,sx,sy,sw,sw,0,0,220,220);croppedPhoto=canvas.toDataURL('image/jpeg',0.82);document.getElementById('pm-photo-info').textContent='Fotografia nahratá';closeCropModal();prevAv()}
+
+// ── ROLE MODAL ──
+let editRoleId=null,selRc=0;
+function openRoleModal(id){editRoleId=id||null;selRc=0;const r=id?companyRoles.find(x=>x.id===id):null;document.getElementById('rm-ttl').textContent=id?'Upraviť rolu':'Nová rola';document.getElementById('r-name').value=r?r.name:'';document.getElementById('r-level').value=r?r.level:1;document.getElementById('r-desc').value=r?r.desc:'';selRc=r?RC.indexOf(r.color):0;if(selRc<0)selRc=0;document.getElementById('rc-colors').innerHTML=RC.map((col,i)=>`<div style="width:20px;height:20px;border-radius:50%;background:${col};cursor:pointer;border:2px solid ${i===selRc?'var(--tx)':'transparent'}" onclick="pickRc(${i})"></div>`).join('');document.getElementById('r-reports-to').innerHTML=companyRoles.filter(x=>x.id!==id).map(x=>{const checked=r&&(r.reportsTo||[]).includes(x.id);return`<label class="chk-row"><input type="checkbox" value="${x.id}" ${checked?'checked':''}><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${x.color}"></span>${esc(x.name)} <span style="font-size:9px;color:var(--tx3)">L${x.level}</span></span></label>`}).join('');document.getElementById('role-modal').classList.remove('hidden')}
+function closeRoleModal(){document.getElementById('role-modal').classList.add('hidden');editRoleId=null}
+function pickRc(i){selRc=i;document.querySelectorAll('#rc-colors div').forEach((el,j)=>el.style.borderColor=j===i?'var(--tx)':'transparent')}
+function saveRole(){const name=document.getElementById('r-name').value.trim();const level=parseInt(document.getElementById('r-level').value)||1;if(!name){alert('Vyplň názov roly.');return}const reportsTo=Array.from(document.querySelectorAll('#r-reports-to input:checked')).map(el=>el.value);const data={name,level,desc:document.getElementById('r-desc').value.trim(),color:RC[selRc]||RC[0],reportsTo};if(editRoleId){const i=companyRoles.findIndex(r=>r.id===editRoleId);if(i!==-1)companyRoles[i]={...companyRoles[i],...data}}else companyRoles.push({id:uid(),...data});closeRoleModal();renderRolesSection();renderRdOrgChart();renderGrid();renderSopPage();if(activeSopId)renderWsSidebar();saveAll()}
+
+// ── DIVS ──
+function renderRdDivs(){const el=document.getElementById('rd-divs-chips');if(!el)return;el.innerHTML=companyDivs.map(d=>`<div class="div-chip"><div class="div-chip-dot" style="background:${d.color}"></div><span class="div-chip-name">${esc(d.name)}</span>${d.desc?`<span style="font-size:9.5px;color:var(--tx3)"> · ${esc(d.desc)}</span>`:''}` +`<button class="dc-edit" onclick="openDivModal('${d.id}')">&#9998;</button><button class="dc-del" onclick="deleteDiv('${d.id}')">&#10005;</button></div>`).join('')}
+let editDivId=null,selDvC=0;
+const DV_COLORS=['#2d7a4a','#1281ff','#924168','#b06010','#a02850','#4fa4ff','#55253b','#614030','#d08020','#308050'];
+function openDivModal(did){editDivId=did||null;selDvC=0;document.getElementById('dm-ttl').textContent=did?'Upravit diviziu':'Nova divizia';document.getElementById('dv-colors').innerHTML=DV_COLORS.map((col,i)=>`<div style="width:20px;height:20px;border-radius:50%;background:${col};cursor:pointer;border:2px solid ${i===selDvC?'var(--tx)':'transparent'};transition:border-color .1s" onclick="pickDvC(${i})"></div>`).join('');if(did){const dv=companyDivs.find(x=>x.id===did);if(!dv)return;document.getElementById('dv-name').value=dv.name;document.getElementById('dv-desc').value=dv.desc||'';selDvC=DV_COLORS.indexOf(dv.color);if(selDvC<0)selDvC=0}else{['dv-name','dv-desc'].forEach(id=>document.getElementById(id).value='')};document.getElementById('div-modal').classList.remove('hidden')}
+function closeDivModal(){document.getElementById('div-modal').classList.add('hidden');editDivId=null}
+function pickDvC(i){selDvC=i;document.querySelectorAll('#dv-colors div').forEach((el,j)=>el.style.borderColor=j===i?'var(--tx)':'transparent')}
+function saveDiv(){const name=document.getElementById('dv-name').value.trim();if(!name){alert('Vyplň nazov divízie.');return}const data={name,desc:document.getElementById('dv-desc').value.trim(),color:DV_COLORS[selDvC]||DV_COLORS[0]};if(editDivId){const i=companyDivs.findIndex(d=>d.id===editDivId);if(i!==-1)companyDivs[i]={...companyDivs[i],...data}}else companyDivs.push({id:uid(),...data});closeDivModal();renderRdDivs();renderSopPage();saveAll()}
+function deleteDiv(id){if(!confirm('Zmazat diviiu?'))return;companyDivs=companyDivs.filter(d=>d.id!==id);sops.forEach(s=>{if(s.divIds)s.divIds=s.divIds.filter(x=>x!==id)});if(activeDivFilter===id)activeDivFilter=null;renderRdDivs();renderSopPage();saveAll()}
+
+// ── OKR ──
+function renderOkr(){const s=activeSop();if(!s)return;const el=document.getElementById('okr-display');if(!el)return;const okr=s.okr;if(!okr||(!okr.objective&&!(okr.keyResults||[]).length)){el.innerHTML='<div class="okr-empty">Žiadny OKR. Klikni Upraviť.</div>'}else{const krs=(okr.keyResults||[]).filter(k=>k.trim());el.innerHTML='<div class="okr-box"><div class="okr-objective">&#127945; '+esc(okr.objective||'')+'</div>'+(krs.length?'<div class="okr-krs">'+krs.map(k=>'<div class="okr-kr"><div class="okr-kr-dot"></div>'+esc(k)+'</div>').join('')+'</div>':'')+'</div>'}}
+function toggleOkrEdit(){const s=activeSop();if(!s)return;const form=document.getElementById('okr-edit-form');const display=document.getElementById('okr-display');const btn=document.getElementById('okr-edit-btn');const open=form.style.display==='none';form.style.display=open?'block':'none';display.style.display=open?'none':'block';btn.innerHTML=open?'&#10003; Hotovo':'&#9998; Upraviť';if(open){const okr=s.okr||{objective:'',keyResults:[]};document.getElementById('okr-objective').value=okr.objective||'';renderKrInputs(okr.keyResults||[])}else{saveOkrFromForm()}}
+function renderKrInputs(krs){const el=document.getElementById('okr-kr-list');if(!el)return;const list=krs.length?krs:[''];el.innerHTML=list.map((k,i)=>`<div style="display:flex;gap:5px;margin-bottom:4px;align-items:flex-start"><span style="font-size:9px;font-weight:700;color:#1281ff;padding-top:6px;min-width:20px;text-align:right">KR${i+1}</span><textarea class="okr-kr-inp" data-ki="${i}" rows="1" placeholder="Key Result ${i+1}…" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,60)+'px';autoSaveOkr()">${esc(k)}</textarea><button class="del-btn" style="margin-top:3px" onclick="removeKr(${i})">&#10005;</button></div>`).join('')}
+function addKr(){const s=activeSop();if(!s)return;if(!s.okr)s.okr={objective:'',keyResults:[]};s.okr.keyResults.push('');renderKrInputs(s.okr.keyResults);saveAll()}
+function removeKr(i){const s=activeSop();if(!s||!s.okr)return;s.okr.keyResults.splice(i,1);renderKrInputs(s.okr.keyResults);renderOkr();saveAll()}
+function autoSaveOkr(){saveOkrFromForm()}
+function saveOkrFromForm(){const s=activeSop();if(!s)return;const obj=document.getElementById('okr-objective')?.value.trim()||'';const krs=Array.from(document.querySelectorAll('#okr-kr-list .okr-kr-inp')).map(el=>el.value.trim()).filter(k=>k);s.okr={objective:obj,keyResults:krs};s.updatedAt=Date.now();renderOkr();saveAll()}
+
+// ── EXPORT / IMPORT ──
+function exportData(){try{const d={_v:5,_exported:new Date().toISOString(),theme,cr:companyRoles.map(r=>({i:r.id,n:r.name,lv:r.level,d:r.desc||'',c:r.color,rt:r.reportsTo||[]})),cd:companyDivs.map(dv=>({i:dv.id,n:dv.name,d:dv.desc||'',c:dv.color})),pe:people.map(p=>({i:p.id,fn:p.fname||'',ln:p.lname||'',sh:p.short||'',ri:p.roleIds||[],co:p.coop||'',di:p.div||'',em:p.email||'',e2:p.email2||'',ph:p.phone||'',ca:p.card||'',bd:p.bday||'',ci:p.ci||0,pt:p.photo||''})),sp:sops.map(s=>({i:s.id,ti:s.title,su:s.subtitle||'',v:s.version||'v1.0',up:s.updatedAt||Date.now(),ic:s.icon||'📋',di:s.divIds||[],rl:(s.relations||[]).map(r=>({t:r.targetId,y:r.type})),ok:s.okr||null,sw:s.swimRoles.map(r=>({i:r.id,pi:r.personId,c:r.colorIdx})),st:s.steps.map(st=>({i:st.id,ti:st.title,tk:Object.fromEntries(Object.entries(st.tasks).map(([rid,ts])=>[rid,ts.map(t=>({ti:t.title,su:t.sub}))]))}))}))};const json=JSON.stringify(d,null,2);const blob=new Blob([json],{type:'application/json'});const a=document.createElement('a');const date=new Date().toISOString().slice(0,10);a.download='headmap-data-'+date+'.json';a.href=URL.createObjectURL(blob);a.click();showToast('&#10003; Záloha stiahnutá')}catch(e){alert('Chyba pri exporte: '+e.message)}}
+function importData(inp) {
+  if (!inp.files || !inp.files[0]) return;
+  const file = inp.files[0];
+  const reader = new FileReader();
+
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      
+      if (!d._v) {
+        alert('Neplatný súbor zálohy.');
+        return;
+      }
+
+      if (!confirm('Načítať zálohu z ' + (d._exported ? d._exported.slice(0, 10) : '?') + '?\nToto prepíše aktuálne dáta.')) {
+        inp.value = '';
+        return;
+      }
+
+      // Mapping Logic
+      applyTheme(d.theme || 'white');
+      
+      companyRoles = (d.cr || []).map(r => ({
+        id: r.i,
+        name: r.n,
+        level: r.lv,
+        desc: r.d || '',
+        color: r.c,
+        reportsTo: r.rt || []
+      }));
+
+      companyDivs = (d.cd || []).map(dv => ({
+        id: dv.i,
+        name: dv.n,
+        desc: dv.d || '',
+        color: dv.c
+      }));
+
+      people = (d.pe || []).map(p => ({
+        id: p.i,
+        fname: p.fn,
+        lname: p.ln,
+        short: p.sh,
+        roleIds: Array.isArray(p.ri) ? p.ri : [],
+        coop: p.co,
+        div: p.di,
+        email: p.em,
+        email2: p.e2,
+        phone: p.ph,
+        card: p.ca,
+        bday: p.bd,
+        ci: p.ci || 0,
+        photo: p.pt || ''
+      }));
+
+      sops = (d.sp || []).map(s => ({
+        id: s.i,
+        title: s.ti,
+        subtitle: s.su || '',
+        version: s.v || 'v1.0',
+        updatedAt: s.up || Date.now(),
+        icon: s.ic || '📋',
+        divIds: s.di || [],
+        relations: (s.rl || []).map(r => ({ targetId: r.t, type: r.y })),
+        okr: s.ok || null,
+        swimRoles: (s.sw || []).map(r => ({ id: r.i, personId: r.pi, colorIdx: r.c })),
+        steps: (s.st || []).map(st => ({
+          id: st.i,
+          title: st.ti,
+          tasks: Object.fromEntries(
+            Object.entries(st.tk || {}).map(([rid, ts]) => [
+              rid,
+              ts.map(t => ({ id: uid(), title: t.ti, sub: t.su }))
+            ])
+          )
+        }))
+      }));
+
+      // Post-import actions
+      saveAll();
+      activeSopId = null;
+      activeDivFilter = null;
+      backToList();
+      renderSopPage();
+      inp.value = '';
+      showToast('✓ Záloha načítaná!');
+      
+    } catch (err) {
+      alert('Chyba pri spracovaní súboru: ' + err.message);
+      inp.value = '';
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+function resetDefaults(){if(!confirm('Načítať ukážkové dáta? Prepíše aktuálne.'))return;companyRoles=[{id:'cr1',name:'COO',level:1,desc:'Chief Operating Officer',color:'#1281ff',reportsTo:[]},{id:'cr2',name:'Assistant',level:2,desc:'',color:'#924168',reportsTo:['cr1']}];companyDivs=[{id:'d1',name:'Operations',desc:'Prevádzkové procesy',color:'#2d7a4a'},{id:'d2',name:'HR',desc:'Ľudské zdroje',color:'#924168'},{id:'d3',name:'Finance',desc:'Financie a účtovníctvo',color:'#1281ff'}];people=[{id:'p1',fname:'Juraj',lname:'Petrik',short:'JP',roleIds:['cr1'],coop:'dohoda',div:'Management',email:'petrik@myheadmap.com',email2:'',phone:'911 280 390',card:'13530',bday:'29.9.',ci:0,photo:''},{id:'p2',fname:'Anna',lname:'Prochazková',short:'AP',roleIds:['cr2'],coop:'FAKTURANT',div:'Operations',email:'',email2:'',phone:'',card:'',bday:'',ci:2,photo:''}];sops=[{id:'s1',title:'Tyzdenny report nezaplatenych faktur',subtitle:'SOP v1.0',version:'v1.0',updatedAt:Date.now(),icon:'📊',divIds:['d3'],relations:[],okr:null,swimRoles:[],steps:[{id:uid(),title:'1 - Vypis z uctu',tasks:{}},{id:uid(),title:'2 - Pohyby',tasks:{}},{id:uid(),title:'3 - Excel',tasks:{}},{id:uid(),title:'4 - Odoslanie',tasks:{}}]},{id:'s2',title:'Onboarding noveho zamestnanca',subtitle:'SOP v1.0',version:'v1.0',updatedAt:Date.now()-86400000,icon:'👋',divIds:['d2'],relations:[{targetId:'s1',type:'related'}],okr:null,swimRoles:[],steps:[{id:uid(),title:'1 - Priprava',tasks:{}},{id:uid(),title:'2 - Prvy den',tasks:{}},{id:uid(),title:'3 - Prvy tyzden',tasks:{}}]}];saveAll();activeSopId=null;activeDivFilter=null;backToList();renderSopPage();showToast('&#8635; Ukážkové dáta načítané')}
+
+// ── EXPORT PNG/HTML ──
+function exportPNG(){const el=document.getElementById('sl-tbl');if(!el){alert('Otvor SOP s diagramom.');return}import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js').catch(()=>{});showToast('PNG export — použi print/screenshot prehliadača')}
+function exportHTML(){const s=activeSop();if(!s)return;const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(s.title)}</title><style>body{font-family:sans-serif;padding:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:8px;vertical-align:top}</style></head><body><h1>${esc(s.title)}</h1><p>${esc(s.subtitle||'')}</p>${document.getElementById('sl-out').innerHTML}</body></html>`;const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.download=s.title.replace(/[^a-z0-9]/gi,'_')+'.html';a.href=URL.createObjectURL(blob);a.click()}
+
+// ── AI ──
+let aiHistory=[];
+function loadKey(){const k=localStorage.getItem('hm_ai_key')||'';document.getElementById('ai-key-inp').value=k}
+function saveKey(v){localStorage.setItem('hm_ai_key',v)}
+function toggleKeyVis(){const inp=document.getElementById('ai-key-inp');inp.type=inp.type==='password'?'text':'password'}
+function toggleAI(e){e.stopPropagation();const p=document.getElementById('ai-panel');p.classList.toggle('mini');document.getElementById('ai-mini-btn').innerHTML=p.classList.contains('mini')?'&#8250;':'&#8249;'}
+function aiKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend()}}
+function aiResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,70)+'px'}
+function aiAddMsg(role,html){const msgs=document.getElementById('ai-msgs');const div=document.createElement('div');div.className='ai-msg '+role;const av=document.createElement('div');av.className='ai-av '+(role==='assistant'?'bot':'usr');av.innerHTML=role==='assistant'?'&#129302;':((currentUser?.displayName||'U')[0]||'U').toUpperCase();const bub=document.createElement('div');bub.className='ai-bub';bub.innerHTML=html;div.appendChild(av);div.appendChild(bub);msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight}
+function aiQBtns(qs){const qw=document.getElementById('ai-quick');qw.innerHTML=qs.map(q=>`<button class="ai-qb" onclick="aiAsk('${q}')">${q}</button>`).join('')}
+async function aiSend(){const inp=document.getElementById('ai-inp');const msg=inp.value.trim();if(!msg)return;aiAsk(msg);inp.value='';inp.style.height='auto'}
+async function aiAsk(q){const key=document.getElementById('ai-key-inp').value.trim();if(!key){aiAddMsg('assistant','Vlož API kľúč vyššie. &#128272;');return}const s=activeSop();const ctx=s?`SOP: ${s.title}. Kroky: ${s.steps.map(st=>st.title).join(', ')}. Roly: ${s.swimRoles.map(r=>{const p=people.find(x=>x.id===r.personId);return p?pName(p):''}).filter(Boolean).join(', ')}.`:'Nie je otvorený žiadny SOP.';aiAddMsg('user',esc(q));aiHistory.push({role:'user',content:q});document.getElementById('ai-send-btn').disabled=true;const typing=document.createElement('div');typing.className='ai-msg assistant';typing.innerHTML='<div class="ai-av bot">&#129302;</div><div class="ai-bub"><div class="ai-typing"><span></span><span></span><span></span></div></div>';document.getElementById('ai-msgs').appendChild(typing);try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:600,system:'Si asistent pre headmap SOPs Builder. Kontext: '+ctx,messages:aiHistory})});const d=await r.json();const reply=(d.content&&d.content[0]?.text)||'Chyba.';aiHistory.push({role:'assistant',content:reply});typing.remove();aiAddMsg('assistant',esc(reply).replace(/\n/g,'<br>'))}catch(e){typing.remove();aiAddMsg('assistant','Chyba: '+esc(e.message))}finally{document.getElementById('ai-send-btn').disabled=false}}
+
+loadKey();
+aiAddMsg('assistant','Ahoj! Otvor SOP a môžem ti pomôcť. &#128272; Pre AI vlož API kľúč.');
+aiQBtns(['Zhrn SOP','Kto su role?','Kolko krokov?']);
+</script>
+</body>
+</html>
